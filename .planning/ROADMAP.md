@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 Plans:
-- [ ] 01-01: Next.js 15 scaffold with TypeScript, Tailwind, shadcn/ui
+- [x] 01-01: Next.js 15 scaffold with TypeScript, Tailwind, shadcn/ui
 - [ ] 01-02: Supabase setup with database schema
 - [ ] 01-03: Security base (env vars, secrets scanning, dependency scanning)
 
@@ -161,7 +161,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Security Base | 0/3 | Not started | - |
+| 1. Foundation & Security Base | 1/3 | In progress | - |
 | 2. Auth & Session Security | 0/3 | Not started | - |
 | 3. Database & RLS | 0/2 | Not started | - |
 | 4. Onboarding Flow | 0/3 | Not started | - |
