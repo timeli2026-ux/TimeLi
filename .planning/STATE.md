@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 1 of 10 (Foundation & Security Base)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-15 — Completed 01-01-PLAN.md
+Last activity: 2026-01-15 — Completed 01-02-PLAN.md
 
-Progress: █░░░░░░░░░ 3%
+Progress: ██░░░░░░░░ 7%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
+- Total plans completed: 2
 - Average duration: 4 min
-- Total execution time: 0.07 hours
+- Total execution time: 0.12 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 1/3 | 4 min | 4 min |
+| 1 | 2/3 | 7 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min)
-- Trend: First plan complete
+- Last 5 plans: 01-01 (4 min), 01-02 (3 min)
+- Trend: Consistent execution speed
 
 ## Accumulated Context
 
@@ -43,6 +43,9 @@ Recent decisions affecting current work:
 - Security-first approach: Security requirements integrated throughout phases rather than bolted on at end
 - 10-phase structure: Expanded from 8 to 10 phases to properly address security
 - shadcn/ui new-york style: Clean, professional aesthetic with neutral base color
+- Profiles table cascade delete: When auth.users deleted, profiles automatically cleaned up
+- Default timezone America/New_York: Can be changed during onboarding
+- RLS policies deferred to Phase 3: Enabled now but policies written in dedicated phase
 
 ### Pending Todos
 
@@ -55,5 +58,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-15
-Stopped at: Completed 01-01-PLAN.md
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
