@@ -1,0 +1,10 @@
+# Run gitleaks if available
+if command -v gitleaks &> /dev/null; then
+  gitleaks protect --staged --verbose
+else
+  echo "Warning: gitleaks not installed - skipping secrets scan"
+  echo "   Install with: brew install gitleaks"
+fi
+
+# Run TypeScript check
+npm run build --if-present
