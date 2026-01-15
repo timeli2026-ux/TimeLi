@@ -69,6 +69,24 @@ Generate a weekly schedule from goals and constraints that respects all hard con
 - [ ] Preference suggestions from patterns
 - [ ] Notes section
 
+**Security & Compliance**
+- [ ] Environment variable management (all API keys in `.env.local`, never in code)
+- [ ] Secrets scanning (pre-commit hooks to prevent API key commits)
+- [ ] Environment variable validation on app startup (fail fast if missing)
+- [ ] API key exposure audit (grep for hardcoded keys, check build outputs)
+- [ ] Supabase RLS policies tested and verified for all tables
+- [ ] Input sanitization beyond Zod (XSS prevention, SQL injection protection)
+- [ ] Security headers (CSP, HSTS, X-Frame-Options, etc.)
+- [ ] CSRF protection for state-changing operations
+- [ ] Dependency vulnerability scanning (npm audit, Dependabot)
+- [ ] Rate limiting implementation and testing
+- [ ] Authentication security (session management, token expiration, refresh tokens)
+- [ ] Stripe webhook signature verification
+- [ ] Data encryption at rest (Supabase handles, verify settings)
+- [ ] HTTPS enforcement (Vercel handles, verify redirects)
+- [ ] Error handling that doesn't leak sensitive info
+- [ ] Logging that excludes API keys and sensitive user data
+
 ### Out of Scope
 
 - Calendar integration (Google/Apple/Outlook) — complexity, MVP focus
@@ -99,7 +117,7 @@ Generate a weekly schedule from goals and constraints that respects all hard con
 - **No External Orchestrators**: No n8n, Zapier, Make — all logic in codebase
 - **LLM Budget**: Token budgets enforced (100k input/20k output daily per tier, 3k/500 per session)
 - **Performance**: Landing <1s, Calendar <1.5s, Schedule gen <3s, Drag/drop <200ms, LLM endpoints <2s P95
-- **Security**: RLS on all tables, rate limiting, input validation (Zod), API keys server-only, CORS allowlist
+- **Security**: RLS on all tables, rate limiting, input validation (Zod), API keys server-only (env vars only, never in code/repo), CORS allowlist, secrets scanning, security headers, dependency scanning, Stripe webhook verification
 
 ## Key Decisions
 
