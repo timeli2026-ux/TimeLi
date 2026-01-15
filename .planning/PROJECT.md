@@ -74,6 +74,8 @@ Generate a weekly schedule from goals and constraints that respects all hard con
 - [ ] Secrets scanning (pre-commit hooks to prevent API key commits)
 - [ ] Environment variable validation on app startup (fail fast if missing)
 - [ ] API key exposure audit (grep for hardcoded keys, check build outputs)
+- [ ] Hosted env configuration (Vercel env vars set; `.env.local` never committed)
+- [ ] Supabase Auth redirect allowlist configured (local + Vercel `/auth/callback`)
 - [ ] Supabase RLS policies tested and verified for all tables
 - [ ] Input sanitization beyond Zod (XSS prevention, SQL injection protection)
 - [ ] Security headers (CSP, HSTS, X-Frame-Options, etc.)
