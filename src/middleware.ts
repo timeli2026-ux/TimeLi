@@ -96,10 +96,37 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Protected routes - require authentication
-  if (pathname.startsWith('/dashboard')) {
+  const isOnboardingPath = pathname.startsWith('/onboarding')
+  const isDashboardPath = pathname.startsWith('/dashboard')
+
+  if (isDashboardPath || isOnboardingPath) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+
+    // Check onboarding status for authenticated users on protected routes
+    // Note: This requires an additional Supabase query. Can optimize later with session claims if needed.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .single()
+
+    const onboardingCompleted = profile?.onboarding_completed ?? false
+
+    // Redirect non-onboarded users to onboarding (unless already on onboarding page)
+    if (!onboardingCompleted && !isOnboardingPath) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
+
+    // Redirect onboarded users away from onboarding to dashboard
+    if (onboardingCompleted && isOnboardingPath) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
       return NextResponse.redirect(url)
     }
   }
