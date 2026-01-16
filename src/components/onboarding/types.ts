@@ -16,6 +16,7 @@ export interface OnboardingData {
   sleepEnd: string
 
   // Meal times
+  mealsVariable: boolean
   mealBreakfastStart: string | null
   mealBreakfastDuration: number | null // minutes
   mealLunchStart: string | null
@@ -59,6 +60,7 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   timezone: 'America/New_York',
   sleepStart: '23:00',
   sleepEnd: '07:00',
+  mealsVariable: false,
   mealBreakfastStart: '08:00',
   mealBreakfastDuration: 30,
   mealLunchStart: '12:00',

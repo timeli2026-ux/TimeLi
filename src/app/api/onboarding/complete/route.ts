@@ -14,23 +14,28 @@ const nullableTimeSchema = z.union([
   z.null(),
 ])
 
+// Nullable duration schema that accepts null
+const nullableDurationSchema = (min: number, max: number) =>
+  z.union([z.number().min(min).max(max), z.null()])
+
 // Request body validation schema
 const onboardingSchema = z.object({
   preferences: z.object({
     timezone: z.string().min(1).max(100),
     sleepStart: timeSchema,
     sleepEnd: timeSchema,
+    mealsVariable: z.boolean().optional().default(false),
     mealBreakfastStart: nullableTimeSchema,
-    mealBreakfastDuration: z.number().min(15).max(120).nullable(),
+    mealBreakfastDuration: nullableDurationSchema(15, 120),
     mealLunchStart: nullableTimeSchema,
-    mealLunchDuration: z.number().min(15).max(120).nullable(),
+    mealLunchDuration: nullableDurationSchema(15, 120),
     mealDinnerStart: nullableTimeSchema,
-    mealDinnerDuration: z.number().min(15).max(120).nullable(),
+    mealDinnerDuration: nullableDurationSchema(15, 120),
     bufferMinutes: z.number().min(5).max(30),
     commuteMorningStart: nullableTimeSchema,
-    commuteMorningDuration: z.number().min(15).max(90).nullable(),
+    commuteMorningDuration: nullableDurationSchema(15, 90),
     commuteEveningStart: nullableTimeSchema,
-    commuteEveningDuration: z.number().min(15).max(90).nullable(),
+    commuteEveningDuration: nullableDurationSchema(15, 90),
   }),
   commitments: z.array(
     z.object({
