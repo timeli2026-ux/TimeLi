@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & Security Base** - Project setup with security from day one
 - [x] **Phase 2: Auth & Session Security** - Authentication with secure session handling
 - [x] **Phase 3: Database & RLS** - Row-level security, input sanitization, and early security hardening
-- [ ] **Phase 4: Onboarding Flow** - 7-step wizard for user setup
+- [x] **Phase 4: Onboarding Flow** - 8-step wizard for user setup
 - [ ] **Phase 5: Goals & Preferences** - Goals management and preference system (moved earlier - needed by scheduling)
 - [ ] **Phase 6: Scheduling Engine** - Deterministic constraint satisfaction algorithm
 - [ ] **Phase 7: Calendar UI** - Week view with interactions
@@ -71,7 +71,7 @@ Plans:
 - [x] 03-03: Security hardening (headers, rate limiting) - moved from Phase 10
 
 ### Phase 4: Onboarding Flow
-**Goal**: 7-step wizard capturing user preferences and constraints
+**Goal**: 8-step wizard capturing user preferences, life realms, and actions
 **Depends on**: Phase 3
 **Research**: Unlikely (internal UI patterns)
 **Requirements**: ONBD-01, ONBD-02, ONBD-03, ONBD-04, ONBD-05, ONBD-06, ONBD-07, ONBD-08
@@ -79,8 +79,15 @@ Plans:
 
 Plans:
 - [x] 04-01: Onboarding wizard UI and state management
-- [x] 04-02: Steps 1-4 (timezone, sleep, meals, buffer)
-- [ ] 04-03: Steps 5-7 (commute, commitments, goals chat)
+- [x] 04-02: Steps 1-4 (timezone, sleep, meals, commute)
+- [x] 04-03: Steps 5-8 (commitments, life realms, actions & habits)
+
+**Post-phase refinements:**
+- Removed buffer time step (will be automatic)
+- Added flexible meals (toggle on/off, add custom)
+- Added Life Realms concept (every moment contributes to a life area)
+- Renamed Goals to Actions & Habits with frequency controls
+- Database: user_preferences, fixed_commitments, profiles tables
 
 ### Phase 5: Goals & Preferences
 **Goal**: Goals CRUD and comprehensive preference system
@@ -172,7 +179,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Security Base | 3/3 | Complete | 2026-01-15 |
 | 2. Auth & Session Security | 3/3 | Complete | 2026-01-16 |
 | 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
-| 4. Onboarding Flow | 2/3 | In progress | - |
+| 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
 | 5. Goals & Preferences | 0/3 | Not started | - |
 | 6. Scheduling Engine | 0/3 | Not started | - |
 | 7. Calendar UI | 0/3 | Not started | - |
