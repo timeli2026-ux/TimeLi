@@ -46,13 +46,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // Auth routes - redirect to dashboard if already logged in
-  if (pathname === '/login' || pathname === '/signup') {
+  // Exception: reset-password should be accessible with valid recovery session
+  if (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password') {
     if (user) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
     }
   }
+
+  // Reset password page - allow access (user has recovery session from email link)
+  // The page component handles session validation
 
   return supabaseResponse
 }
