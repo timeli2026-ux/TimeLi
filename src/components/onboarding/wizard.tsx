@@ -8,6 +8,7 @@ import {
   OnboardingData,
   FixedCommitment,
   InitialGoal,
+  LifeRealm,
   ONBOARDING_STEPS,
   DEFAULT_ONBOARDING_DATA,
 } from './types'
@@ -17,6 +18,7 @@ import { MealsStep } from './steps/meals-step'
 import { BufferStep } from './steps/buffer-step'
 import { CommuteStep } from './steps/commute-step'
 import { CommitmentsStep } from './steps/commitments-step'
+import { RealmsStep } from './steps/realms-step'
 import { GoalsIntroStep } from './steps/goals-intro-step'
 
 interface WizardProps {
@@ -77,9 +79,16 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
               startTime: c.startTime,
               endTime: c.endTime,
             })),
+            realms: formData.realms.map((r) => ({
+              id: r.id,
+              name: r.name,
+              icon: r.icon,
+              isCustom: r.isCustom,
+            })),
             goals: formData.goals.map((g) => ({
               title: g.title,
               hoursPerWeek: g.hoursPerWeek,
+              realmId: g.realmId,
             })),
           }),
         })
@@ -139,6 +148,27 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
     }))
   }
 
+  // Realm handlers
+  const handleAddRealm = (realm: Omit<LifeRealm, 'id'>) => {
+    const newRealm: LifeRealm = {
+      ...realm,
+      id: crypto.randomUUID(),
+    }
+    setFormData((prev) => ({
+      ...prev,
+      realms: [...prev.realms, newRealm],
+    }))
+  }
+
+  const handleRemoveRealm = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      realms: prev.realms.filter((r) => r.id !== id),
+      // Also remove goals associated with this realm
+      goals: prev.goals.filter((g) => g.realmId !== id),
+    }))
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
@@ -175,6 +205,8 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
             setFormData={setFormData}
             onAddCommitment={handleAddCommitment}
             onRemoveCommitment={handleRemoveCommitment}
+            onAddRealm={handleAddRealm}
+            onRemoveRealm={handleRemoveRealm}
             onAddGoal={handleAddGoal}
             onRemoveGoal={handleRemoveGoal}
           />
@@ -218,6 +250,8 @@ interface StepContentProps {
   setFormData: React.Dispatch<React.SetStateAction<OnboardingData>>
   onAddCommitment: (commitment: Omit<FixedCommitment, 'id'>) => void
   onRemoveCommitment: (id: string) => void
+  onAddRealm: (realm: Omit<LifeRealm, 'id'>) => void
+  onRemoveRealm: (id: string) => void
   onAddGoal: (goal: Omit<InitialGoal, 'id'>) => void
   onRemoveGoal: (id: string) => void
 }
@@ -228,6 +262,8 @@ function StepContent({
   setFormData,
   onAddCommitment,
   onRemoveCommitment,
+  onAddRealm,
+  onRemoveRealm,
   onAddGoal,
   onRemoveGoal,
 }: StepContentProps) {
@@ -350,10 +386,22 @@ function StepContent({
     )
   }
 
-  // Step 7: Goals
+  // Step 7: Life Realms
   if (step === 7) {
     return (
+      <RealmsStep
+        realms={formData.realms}
+        onAdd={onAddRealm}
+        onRemove={onRemoveRealm}
+      />
+    )
+  }
+
+  // Step 8: Goals
+  if (step === 8) {
+    return (
       <GoalsIntroStep
+        realms={formData.realms}
         goals={formData.goals}
         onAdd={onAddGoal}
         onRemove={onRemoveGoal}

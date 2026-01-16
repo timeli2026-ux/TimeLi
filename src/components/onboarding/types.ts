@@ -37,7 +37,10 @@ export interface OnboardingData {
   // Fixed commitments
   fixedCommitments: FixedCommitment[]
 
-  // Initial goals
+  // Life realms (areas of life to balance)
+  realms: LifeRealm[]
+
+  // Initial goals (linked to realms)
   goals: InitialGoal[]
 }
 
@@ -53,7 +56,27 @@ export interface InitialGoal {
   id: string
   title: string
   hoursPerWeek: number
+  realmId: string // Links goal to a life realm
 }
+
+export interface LifeRealm {
+  id: string
+  name: string
+  icon?: string // Emoji icon
+  isCustom: boolean // Whether user added this or it's a preset
+}
+
+// Suggested life realms for users to choose from
+export const SUGGESTED_REALMS: Omit<LifeRealm, 'id'>[] = [
+  { name: 'Health & Fitness', icon: '🏃', isCustom: false },
+  { name: 'Career & Work', icon: '💼', isCustom: false },
+  { name: 'Relationships', icon: '❤️', isCustom: false },
+  { name: 'Family & Friends', icon: '👨‍👩‍👧', isCustom: false },
+  { name: 'Personal Growth', icon: '🎯', isCustom: false },
+  { name: 'Hobbies & Creativity', icon: '🎨', isCustom: false },
+  { name: 'Finance', icon: '💰', isCustom: false },
+  { name: 'Mental Wellness', icon: '🧘', isCustom: false },
+]
 
 // Default values for onboarding data
 export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
@@ -74,10 +97,11 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   commuteEveningStart: '17:30',
   commuteEveningDuration: 30,
   fixedCommitments: [],
+  realms: [],
   goals: [],
 }
 
-// 7 steps for the onboarding wizard (0-6)
+// 9 steps for the onboarding wizard (0-8)
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 0,
@@ -116,7 +140,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 7,
-    name: 'Goals',
-    description: 'What do you want to accomplish?',
+    name: 'Life Realms',
+    description: 'What areas of life matter most to you?',
+  },
+  {
+    id: 8,
+    name: 'Goals & Actions',
+    description: 'Set goals for each area of your life',
   },
 ]

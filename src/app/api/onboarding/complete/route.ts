@@ -18,6 +18,14 @@ const nullableTimeSchema = z.union([
 const nullableDurationSchema = (min: number, max: number) =>
   z.union([z.number().min(min).max(max), z.null()])
 
+// Life realm validation schema
+const realmSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(50),
+  icon: z.string().max(10).optional(),
+  isCustom: z.boolean(),
+})
+
 // Request body validation schema
 const onboardingSchema = z.object({
   preferences: z.object({
@@ -33,9 +41,9 @@ const onboardingSchema = z.object({
     mealDinnerDuration: nullableDurationSchema(15, 120),
     bufferMinutes: z.number().min(5).max(30),
     commuteMorningStart: nullableTimeSchema,
-    commuteMorningDuration: nullableDurationSchema(15, 90),
+    commuteMorningDuration: nullableDurationSchema(15, 90).nullable(),
     commuteEveningStart: nullableTimeSchema,
-    commuteEveningDuration: nullableDurationSchema(15, 90),
+    commuteEveningDuration: nullableDurationSchema(15, 90).nullable(),
   }),
   commitments: z.array(
     z.object({
@@ -45,12 +53,14 @@ const onboardingSchema = z.object({
       endTime: timeSchema,
     })
   ).max(20),
+  realms: z.array(realmSchema).min(1).max(10),
   goals: z.array(
     z.object({
       title: z.string().min(1).max(100),
-      hoursPerWeek: z.number().min(1).max(40),
+      hoursPerWeek: z.number().min(0.5).max(40),
+      realmId: z.string().uuid(),
     })
-  ).max(10),
+  ).max(20),
 })
 
 export async function POST(request: Request) {
@@ -78,13 +88,17 @@ export async function POST(request: Request) {
       )
     }
 
-    const { preferences, commitments, goals } = validationResult.data
+    const { preferences, commitments, realms, goals } = validationResult.data
 
     // Sanitize string inputs
     const sanitizedTimezone = sanitizeUserInput(preferences.timezone, { maxLength: 100 })
     const sanitizedCommitments = commitments.map((c) => ({
       ...c,
       title: sanitizeUserInput(c.title, { maxLength: 100 }),
+    }))
+    const sanitizedRealms = realms.map((r) => ({
+      ...r,
+      name: sanitizeUserInput(r.name, { maxLength: 50 }),
     }))
     const sanitizedGoals = goals.map((g) => ({
       ...g,
@@ -161,20 +175,21 @@ export async function POST(request: Request) {
       }
     }
 
-    // Store initial goals in user_preferences as JSONB
+    // Store realms and goals in user_preferences as JSONB
     // This is a simple approach for onboarding - full goals CRUD comes in Phase 5
-    const { error: goalsError } = await supabase
+    const { error: realmsGoalsError } = await supabase
       .from('user_preferences')
       .update({
+        life_realms: sanitizedRealms,
         initial_goals: sanitizedGoals,
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', user.id)
 
-    // Note: initial_goals column may not exist yet - we'll handle this gracefully
-    if (goalsError) {
-      // Log but don't fail - goals will be properly handled in Phase 5
-      console.warn('Could not save initial goals (column may not exist):', goalsError)
+    // Note: life_realms/initial_goals columns may not exist yet - we'll handle this gracefully
+    if (realmsGoalsError) {
+      // Log but don't fail - realms/goals will be properly handled in Phase 5
+      console.warn('Could not save realms/goals (columns may not exist):', realmsGoalsError)
     }
 
     // Update profiles.onboarding_completed = true
