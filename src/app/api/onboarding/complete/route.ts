@@ -39,7 +39,6 @@ const onboardingSchema = z.object({
     mealLunchDuration: nullableDurationSchema(15, 120),
     mealDinnerStart: nullableTimeSchema,
     mealDinnerDuration: nullableDurationSchema(15, 120),
-    bufferMinutes: z.number().min(5).max(30),
     commuteMorningStart: nullableTimeSchema,
     commuteMorningDuration: nullableDurationSchema(15, 90).nullable(),
     commuteEveningStart: nullableTimeSchema,
@@ -54,11 +53,13 @@ const onboardingSchema = z.object({
     })
   ).max(20),
   realms: z.array(realmSchema).min(1).max(10),
-  goals: z.array(
+  actions: z.array(
     z.object({
       title: z.string().min(1).max(100),
-      hoursPerWeek: z.number().min(0.5).max(40),
       realmId: z.string().uuid(),
+      timesPerWeek: z.number().min(1).max(7),
+      minutesPerSession: z.number().min(15).max(180),
+      hoursPerWeek: z.number().min(0.25).max(40),
     })
   ).max(20),
 })
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { preferences, commitments, realms, goals } = validationResult.data
+    const { preferences, commitments, realms, actions } = validationResult.data
 
     // Sanitize string inputs
     const sanitizedTimezone = sanitizeUserInput(preferences.timezone, { maxLength: 100 })
@@ -100,9 +101,9 @@ export async function POST(request: Request) {
       ...r,
       name: sanitizeUserInput(r.name, { maxLength: 50 }),
     }))
-    const sanitizedGoals = goals.map((g) => ({
-      ...g,
-      title: sanitizeUserInput(g.title, { maxLength: 100 }),
+    const sanitizedActions = actions.map((a) => ({
+      ...a,
+      title: sanitizeUserInput(a.title, { maxLength: 100 }),
     }))
 
     // Upsert user preferences
@@ -120,7 +121,6 @@ export async function POST(request: Request) {
           meal_lunch_duration: preferences.mealLunchDuration,
           meal_dinner_start: preferences.mealDinnerStart,
           meal_dinner_duration: preferences.mealDinnerDuration,
-          buffer_minutes: preferences.bufferMinutes,
           commute_morning_start: preferences.commuteMorningStart,
           commute_morning_duration: preferences.commuteMorningDuration,
           commute_evening_start: preferences.commuteEveningStart,
@@ -175,21 +175,21 @@ export async function POST(request: Request) {
       }
     }
 
-    // Store realms and goals in user_preferences as JSONB
-    // This is a simple approach for onboarding - full goals CRUD comes in Phase 5
-    const { error: realmsGoalsError } = await supabase
+    // Store realms and actions in user_preferences as JSONB
+    // This is a simple approach for onboarding - full actions CRUD comes in Phase 5
+    const { error: realmsActionsError } = await supabase
       .from('user_preferences')
       .update({
         life_realms: sanitizedRealms,
-        initial_goals: sanitizedGoals,
+        initial_actions: sanitizedActions,
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', user.id)
 
-    // Note: life_realms/initial_goals columns may not exist yet - we'll handle this gracefully
-    if (realmsGoalsError) {
-      // Log but don't fail - realms/goals will be properly handled in Phase 5
-      console.warn('Could not save realms/goals (columns may not exist):', realmsGoalsError)
+    // Note: life_realms/initial_actions columns may not exist yet - we'll handle this gracefully
+    if (realmsActionsError) {
+      // Log but don't fail - realms/actions will be properly handled in Phase 5
+      console.warn('Could not save realms/actions (columns may not exist):', realmsActionsError)
     }
 
     // Update profiles.onboarding_completed = true

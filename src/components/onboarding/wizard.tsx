@@ -15,11 +15,10 @@ import {
 import { TimezoneStep } from './steps/timezone-step'
 import { SleepStep } from './steps/sleep-step'
 import { MealsStep } from './steps/meals-step'
-import { BufferStep } from './steps/buffer-step'
 import { CommuteStep } from './steps/commute-step'
 import { CommitmentsStep } from './steps/commitments-step'
 import { RealmsStep } from './steps/realms-step'
-import { GoalsIntroStep } from './steps/goals-intro-step'
+import { ActionsStep } from './steps/actions-step'
 
 interface WizardProps {
   initialStep?: number
@@ -67,7 +66,6 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
               mealLunchDuration: formData.mealsVariable ? null : formData.mealLunchDuration,
               mealDinnerStart: formData.mealsVariable ? null : formData.mealDinnerStart,
               mealDinnerDuration: formData.mealsVariable ? null : formData.mealDinnerDuration,
-              bufferMinutes: formData.bufferMinutes,
               commuteMorningStart: formData.hasCommute ? formData.commuteMorningStart : null,
               commuteMorningDuration: formData.hasCommute ? formData.commuteMorningDuration : null,
               commuteEveningStart: formData.hasCommute ? formData.commuteEveningStart : null,
@@ -85,10 +83,12 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
               icon: r.icon,
               isCustom: r.isCustom,
             })),
-            goals: formData.goals.map((g) => ({
+            actions: formData.goals.map((g) => ({
               title: g.title,
-              hoursPerWeek: g.hoursPerWeek,
               realmId: g.realmId,
+              timesPerWeek: g.timesPerWeek,
+              minutesPerSession: g.minutesPerSession,
+              hoursPerWeek: g.hoursPerWeek,
             })),
           }),
         })
@@ -340,18 +340,8 @@ function StepContent({
     )
   }
 
-  // Step 4: Buffer
+  // Step 4: Commute
   if (step === 4) {
-    return (
-      <BufferStep
-        bufferMinutes={formData.bufferMinutes}
-        onChange={(bufferMinutes) => setFormData((prev) => ({ ...prev, bufferMinutes }))}
-      />
-    )
-  }
-
-  // Step 5: Commute
-  if (step === 5) {
     return (
       <CommuteStep
         commute={{
@@ -375,8 +365,8 @@ function StepContent({
     )
   }
 
-  // Step 6: Fixed Commitments
-  if (step === 6) {
+  // Step 5: Fixed Commitments
+  if (step === 5) {
     return (
       <CommitmentsStep
         commitments={formData.fixedCommitments}
@@ -386,8 +376,8 @@ function StepContent({
     )
   }
 
-  // Step 7: Life Realms
-  if (step === 7) {
+  // Step 6: Life Realms
+  if (step === 6) {
     return (
       <RealmsStep
         realms={formData.realms}
@@ -397,12 +387,12 @@ function StepContent({
     )
   }
 
-  // Step 8: Goals
-  if (step === 8) {
+  // Step 7: Actions & Habits
+  if (step === 7) {
     return (
-      <GoalsIntroStep
+      <ActionsStep
         realms={formData.realms}
-        goals={formData.goals}
+        actions={formData.goals}
         onAdd={onAddGoal}
         onRemove={onRemoveGoal}
       />

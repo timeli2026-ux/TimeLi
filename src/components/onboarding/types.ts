@@ -24,9 +24,6 @@ export interface OnboardingData {
   mealDinnerStart: string | null
   mealDinnerDuration: number | null
 
-  // Buffer time
-  bufferMinutes: number
-
   // Commute
   hasCommute: boolean
   commuteMorningStart: string
@@ -55,8 +52,12 @@ export interface FixedCommitment {
 export interface InitialGoal {
   id: string
   title: string
-  hoursPerWeek: number
   realmId: string // Links goal to a life realm
+  // Frequency specification
+  timesPerWeek: number // How many times per week (1-7)
+  minutesPerSession: number // Duration of each session in minutes
+  // Calculated field for display/API
+  hoursPerWeek: number // Computed: (timesPerWeek * minutesPerSession) / 60
 }
 
 export interface LifeRealm {
@@ -67,6 +68,7 @@ export interface LifeRealm {
 }
 
 // Suggested life realms for users to choose from
+// Every moment of time should contribute to one of these areas
 export const SUGGESTED_REALMS: Omit<LifeRealm, 'id'>[] = [
   { name: 'Health & Fitness', icon: '🏃', isCustom: false },
   { name: 'Career & Work', icon: '💼', isCustom: false },
@@ -74,8 +76,8 @@ export const SUGGESTED_REALMS: Omit<LifeRealm, 'id'>[] = [
   { name: 'Family & Friends', icon: '👨‍👩‍👧', isCustom: false },
   { name: 'Personal Growth', icon: '🎯', isCustom: false },
   { name: 'Hobbies & Creativity', icon: '🎨', isCustom: false },
-  { name: 'Finance', icon: '💰', isCustom: false },
-  { name: 'Mental Wellness', icon: '🧘', isCustom: false },
+  { name: 'Spirituality', icon: '🙏', isCustom: false },
+  { name: 'Relaxation', icon: '🛋️', isCustom: false },
 ]
 
 // Default values for onboarding data
@@ -90,7 +92,6 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   mealLunchDuration: 45,
   mealDinnerStart: '18:30',
   mealDinnerDuration: 60,
-  bufferMinutes: 15,
   hasCommute: false,
   commuteMorningStart: '08:00',
   commuteMorningDuration: 30,
@@ -101,7 +102,7 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   goals: [],
 }
 
-// 9 steps for the onboarding wizard (0-8)
+// 8 steps for the onboarding wizard (0-7)
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 0,
@@ -125,27 +126,22 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 4,
-    name: 'Buffer Time',
-    description: 'Time between activities for transitions',
-  },
-  {
-    id: 5,
     name: 'Commute',
     description: 'Your daily commute schedule (if applicable)',
   },
   {
-    id: 6,
+    id: 5,
     name: 'Fixed Commitments',
     description: 'Regular classes, meetings, or activities',
   },
   {
-    id: 7,
+    id: 6,
     name: 'Life Realms',
-    description: 'What areas of life matter most to you?',
+    description: 'Every moment of your time should contribute to an area of life',
   },
   {
-    id: 8,
-    name: 'Goals & Actions',
-    description: 'Set goals for each area of your life',
+    id: 7,
+    name: 'Actions & Habits',
+    description: 'Commit to specific actions for each area of your life',
   },
 ]
