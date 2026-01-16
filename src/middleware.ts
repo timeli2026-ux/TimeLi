@@ -1,7 +1,68 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { rateLimit, rateLimitPresets } from '@/lib/rate-limit'
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Rate limit auth endpoints before processing
+  const authPaths = ['/login', '/signup', '/forgot-password']
+  if (authPaths.includes(pathname)) {
+    // Use IP address as identifier (or forwarded IP in production)
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
+               request.headers.get('x-real-ip') ||
+               'unknown'
+
+    const identifier = `auth:${ip}`
+    const result = rateLimit(identifier, rateLimitPresets.auth)
+
+    if (!result.success) {
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Too many requests',
+          retryAfter: Math.ceil((result.reset - Date.now()) / 1000)
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil((result.reset - Date.now()) / 1000)),
+            'X-RateLimit-Remaining': String(result.remaining),
+            'X-RateLimit-Reset': String(result.reset)
+          }
+        }
+      )
+    }
+  }
+
+  // Password reset specific rate limiting (stricter)
+  if (pathname === '/forgot-password' || pathname === '/reset-password') {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
+               request.headers.get('x-real-ip') ||
+               'unknown'
+
+    const identifier = `password-reset:${ip}`
+    const result = rateLimit(identifier, rateLimitPresets.passwordReset)
+
+    if (!result.success) {
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Too many password reset attempts',
+          retryAfter: Math.ceil((result.reset - Date.now()) / 1000)
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil((result.reset - Date.now()) / 1000)),
+            'X-RateLimit-Remaining': String(result.remaining),
+            'X-RateLimit-Reset': String(result.reset)
+          }
+        }
+      )
+    }
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -33,8 +94,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  const { pathname } = request.nextUrl
 
   // Protected routes - require authentication
   if (pathname.startsWith('/dashboard')) {
