@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 2 — Auth & Session Security
+**Current focus:** Phase 3 — Database & RLS
 
 ## Current Position
 
-Phase: 2 of 10 (Auth & Session Security)
-Plan: 3 of 3 in current phase
-Status: PHASE COMPLETE
-Last activity: 2026-01-16 — Completed 02-03-PLAN.md
+Phase: 3 of 10 (Database & RLS)
+Plan: 0 of 3 in current phase
+Status: PLANNING COMPLETE
+Last activity: 2026-01-16 — Phase 3 plans created, roadmap resequenced
 
 Progress: ██████░░░░ 20%
 
@@ -54,6 +54,10 @@ Recent decisions affecting current work:
 - Middleware uses getUser() not getSession(): More reliable session validation per Supabase docs
 - Inline SVG for Google icon: No external icon dependency needed
 - OAuth requests offline access with consent: Ensures refresh token retrieval
+- (roadmap) Goals & Preferences moved before Scheduling Engine: Data models must exist first
+- (security) Rate limiting and headers moved to Phase 3: Early protection, not at launch
+- (auth) Added password reset flow: forgot-password and reset-password pages
+- (auth) Centralized validation in src/lib/validations/auth.ts: Proper email regex, reusable schemas
 
 ### Pending Todos
 
