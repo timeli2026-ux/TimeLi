@@ -79,7 +79,7 @@ Plans:
 
 Plans:
 - [x] 04-01: Onboarding wizard UI and state management
-- [ ] 04-02: Steps 1-4 (timezone, sleep, meals, buffer)
+- [x] 04-02: Steps 1-4 (timezone, sleep, meals, buffer)
 - [ ] 04-03: Steps 5-7 (commute, commitments, goals chat)
 
 ### Phase 5: Goals & Preferences
@@ -172,7 +172,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Security Base | 3/3 | Complete | 2026-01-15 |
 | 2. Auth & Session Security | 3/3 | Complete | 2026-01-16 |
 | 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
-| 4. Onboarding Flow | 1/3 | In progress | - |
+| 4. Onboarding Flow | 2/3 | In progress | - |
 | 5. Goals & Preferences | 0/3 | Not started | - |
 | 6. Scheduling Engine | 0/3 | Not started | - |
 | 7. Calendar UI | 0/3 | Not started | - |

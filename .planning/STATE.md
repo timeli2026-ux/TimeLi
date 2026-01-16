@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 4 of 10 (Onboarding Flow)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-16 — Completed 04-01-PLAN.md
+Last activity: 2026-01-16 — Completed 04-02-PLAN.md
 
-Progress: ██████████░ 33%
+Progress: ███████████░ 37%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 5 min
-- Total execution time: 0.8 hours
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: ██████████░ 33%
 | 1 | 3/3 | 18 min | 6 min |
 | 2 | 3/3 | 15 min | 5 min |
 | 3 | 3/3 | 12 min | 4 min |
-| 4 | 1/3 | 3 min | 3 min |
+| 4 | 2/3 | 8 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (8 min), 03-01 (2 min), 03-02 (5 min), 03-03 (5 min), 04-01 (3 min)
+- Last 5 plans: 03-01 (2 min), 03-02 (5 min), 03-03 (5 min), 04-01 (3 min), 04-02 (5 min)
 - Trend: Consistent execution speed
 
 ## Accumulated Context
@@ -64,9 +64,11 @@ Recent decisions affecting current work:
 - (rls) Four standard RLS patterns documented for future tables
 - (security) In-memory rate limiter for dev (Upstash for production at scale)
 - (security) CSP header deferred to Phase 10 (needs all external resources known)
-- (onboarding) 7-step wizard flow for comprehensive preference collection
+- (onboarding) 8-step wizard flow for comprehensive preference collection (was 7, added Buffer step)
 - (onboarding) Middleware profile query for onboarding status (can optimize with session claims later)
 - (onboarding) Minimal onboarding layout without sidebar for focused experience
+- (onboarding) Step components use controlled input pattern with value/onChange props
+- (onboarding) Slider steps set to 15 min for durations, 5 min for buffer time
 
 ### Pending Todos
 
@@ -79,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-16
-Stopped at: Completed 04-01-PLAN.md
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
