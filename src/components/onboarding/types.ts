@@ -84,11 +84,11 @@ export const SUGGESTED_REALMS: Omit<LifeRealm, 'id'>[] = [
   { name: 'Mental Wellness', icon: '🧘', isCustom: false },
 ]
 
-// Default meals for onboarding
+// Default meals for onboarding (static IDs for SSR compatibility)
 export const DEFAULT_MEALS: Meal[] = [
-  { id: 'breakfast', name: 'Breakfast', enabled: true, start: '08:00', duration: 30 },
-  { id: 'lunch', name: 'Lunch', enabled: true, start: '12:00', duration: 45 },
-  { id: 'dinner', name: 'Dinner', enabled: true, start: '18:30', duration: 60 },
+  { id: 'default-breakfast', name: 'Breakfast', enabled: true, start: '08:00', duration: 30 },
+  { id: 'default-lunch', name: 'Lunch', enabled: true, start: '12:00', duration: 45 },
+  { id: 'default-dinner', name: 'Dinner', enabled: true, start: '18:30', duration: 60 },
 ]
 
 // Default values for onboarding data
@@ -97,7 +97,7 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   sleepStart: '23:00',
   sleepEnd: '07:00',
   mealsVariable: false,
-  meals: DEFAULT_MEALS.map((m) => ({ ...m, id: crypto.randomUUID() })),
+  meals: [...DEFAULT_MEALS],
   hasCommute: false,
   commuteMorningStart: '08:00',
   commuteMorningDuration: 30,

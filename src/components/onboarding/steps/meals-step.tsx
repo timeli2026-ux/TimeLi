@@ -29,7 +29,7 @@ const DEFAULT_MEALS: Omit<Meal, 'id'>[] = [
   { name: 'Dinner', enabled: true, start: '18:30', duration: 60 },
 ]
 
-export function MealsStep({ meals, isVariable, onChange }: MealsStepProps) {
+export function MealsStep({ meals = [], isVariable, onChange }: MealsStepProps) {
   const [newMealName, setNewMealName] = useState('')
 
   const toggleVariable = () => {
