@@ -8,6 +8,10 @@ import {
   ONBOARDING_STEPS,
   DEFAULT_ONBOARDING_DATA,
 } from './types'
+import { TimezoneStep } from './steps/timezone-step'
+import { SleepStep } from './steps/sleep-step'
+import { MealsStep } from './steps/meals-step'
+import { BufferStep } from './steps/buffer-step'
 
 interface WizardProps {
   initialStep?: number
@@ -33,7 +37,7 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
       // Submit onboarding data
       setIsSubmitting(true)
       try {
-        // TODO: Implement onboarding submission in Plan 02/03
+        // TODO: Implement onboarding submission in Plan 03
         console.log('Submitting onboarding data:', formData)
         // After successful submission, redirect to dashboard
       } catch (error) {
@@ -75,8 +79,7 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
         </CardHeader>
 
         {/* Step Content */}
-        <CardContent className="min-h-[300px] flex items-center justify-center">
-          {/* Placeholder content for each step - will be replaced in Plans 02/03 */}
+        <CardContent className="min-h-[300px] flex items-center justify-center py-8">
           <StepContent step={currentStep} formData={formData} setFormData={setFormData} />
         </CardContent>
 
@@ -104,29 +107,102 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
   )
 }
 
-// Placeholder step content component - will be replaced with real components in Plans 02/03
+// Step content component that renders the appropriate step
 interface StepContentProps {
   step: number
   formData: OnboardingData
   setFormData: React.Dispatch<React.SetStateAction<OnboardingData>>
 }
 
-function StepContent({ step }: StepContentProps) {
+function StepContent({ step, formData, setFormData }: StepContentProps) {
   const stepInfo = ONBOARDING_STEPS[step]
 
+  // Step 0: Welcome
+  if (step === 0) {
+    return (
+      <div className="text-center space-y-4">
+        <h2 className="text-2xl font-semibold">Welcome to TimeLi!</h2>
+        <p className="text-muted-foreground max-w-md">
+          Let&apos;s set up your schedule preferences. This will help us create a personalized
+          weekly schedule that respects your constraints and helps you achieve your goals.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          This only takes a few minutes.
+        </p>
+      </div>
+    )
+  }
+
+  // Step 1: Timezone
+  if (step === 1) {
+    return (
+      <TimezoneStep
+        value={formData.timezone}
+        onChange={(timezone) => setFormData((prev) => ({ ...prev, timezone }))}
+      />
+    )
+  }
+
+  // Step 2: Sleep
+  if (step === 2) {
+    return (
+      <SleepStep
+        sleepStart={formData.sleepStart}
+        sleepEnd={formData.sleepEnd}
+        onSleepStartChange={(sleepStart) => setFormData((prev) => ({ ...prev, sleepStart }))}
+        onSleepEndChange={(sleepEnd) => setFormData((prev) => ({ ...prev, sleepEnd }))}
+      />
+    )
+  }
+
+  // Step 3: Meals
+  if (step === 3) {
+    return (
+      <MealsStep
+        meals={{
+          breakfast: {
+            start: formData.mealBreakfastStart,
+            duration: formData.mealBreakfastDuration,
+          },
+          lunch: {
+            start: formData.mealLunchStart,
+            duration: formData.mealLunchDuration,
+          },
+          dinner: {
+            start: formData.mealDinnerStart,
+            duration: formData.mealDinnerDuration,
+          },
+        }}
+        onChange={(meals) =>
+          setFormData((prev) => ({
+            ...prev,
+            mealBreakfastStart: meals.breakfast.start,
+            mealBreakfastDuration: meals.breakfast.duration,
+            mealLunchStart: meals.lunch.start,
+            mealLunchDuration: meals.lunch.duration,
+            mealDinnerStart: meals.dinner.start,
+            mealDinnerDuration: meals.dinner.duration,
+          }))
+        }
+      />
+    )
+  }
+
+  // Step 4: Buffer
+  if (step === 4) {
+    return (
+      <BufferStep
+        bufferMinutes={formData.bufferMinutes}
+        onChange={(bufferMinutes) => setFormData((prev) => ({ ...prev, bufferMinutes }))}
+      />
+    )
+  }
+
+  // Steps 5-7: Placeholders for Plan 03
   return (
     <div className="text-center space-y-4">
-      <div className="text-6xl">
-        {step === 0 && '👋'}
-        {step === 1 && '🌍'}
-        {step === 2 && '😴'}
-        {step === 3 && '🍽️'}
-        {step === 4 && '🚗'}
-        {step === 5 && '📅'}
-        {step === 6 && '✅'}
-      </div>
       <p className="text-muted-foreground">
-        {stepInfo.name} step content will be implemented in Plan 02/03
+        {stepInfo.name} step content will be implemented in Plan 03
       </p>
     </div>
   )

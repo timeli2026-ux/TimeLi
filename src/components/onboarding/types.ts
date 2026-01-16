@@ -64,7 +64,7 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   fixedCommitments: [],
 }
 
-// 7 steps for the onboarding wizard
+// 8 steps for the onboarding wizard
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 0,
@@ -88,16 +88,21 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 4,
+    name: 'Buffer Time',
+    description: 'Time between activities for transitions',
+  },
+  {
+    id: 5,
     name: 'Commute',
     description: 'Your daily commute schedule (if applicable)',
   },
   {
-    id: 5,
+    id: 6,
     name: 'Fixed Commitments',
     description: 'Regular classes, meetings, or activities',
   },
   {
-    id: 6,
+    id: 7,
     name: 'Review',
     description: 'Confirm your schedule preferences',
   },
