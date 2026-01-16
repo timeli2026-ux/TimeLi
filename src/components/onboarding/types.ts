@@ -77,7 +77,7 @@ export const SUGGESTED_REALMS: Omit<LifeRealm, 'id'>[] = [
   { name: 'Personal Growth', icon: '🎯', isCustom: false },
   { name: 'Hobbies & Creativity', icon: '🎨', isCustom: false },
   { name: 'Spirituality', icon: '🙏', isCustom: false },
-  { name: 'Relaxation', icon: '🛋️', isCustom: false },
+  { name: 'Mental Wellness', icon: '🧘', isCustom: false },
 ]
 
 // Default values for onboarding data
