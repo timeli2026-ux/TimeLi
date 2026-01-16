@@ -19,9 +19,9 @@ Progress: ███████░░░ 23%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 5.3 min
-- Total execution time: 0.53 hours
+- Total plans completed: 7
+- Average duration: 5 min
+- Total execution time: 0.58 hours
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: ███████░░░ 23%
 |-------|-------|-------|----------|
 | 1 | 3/3 | 18 min | 6 min |
 | 2 | 3/3 | 15 min | 5 min |
+| 3 | 1/3 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (11 min), 02-01 (4 min), 02-02 (3 min), 02-03 (8 min)
+- Last 5 plans: 02-01 (4 min), 02-02 (3 min), 02-03 (8 min), 03-01 (2 min)
 - Trend: Consistent execution speed
 
 ## Accumulated Context
@@ -58,6 +59,8 @@ Recent decisions affecting current work:
 - (security) Rate limiting and headers moved to Phase 3: Early protection, not at launch
 - (auth) Added password reset flow: forgot-password and reset-password pages
 - (auth) Centralized validation in src/lib/validations/auth.ts: Proper email regex, reusable schemas
+- (rls) SELECT/UPDATE only for profiles: INSERT via trigger, DELETE via cascade from auth.users
+- (rls) Four standard RLS patterns documented for future tables
 
 ### Pending Todos
 
@@ -70,5 +73,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-16
-Stopped at: Completed 02-02-PLAN.md
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
