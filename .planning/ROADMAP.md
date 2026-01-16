@@ -50,7 +50,7 @@ Plans:
 
 Plans:
 - [x] 02-01: Email/password signup and login
-- [ ] 02-02: Google OAuth integration
+- [x] 02-02: Google OAuth integration
 - [ ] 02-03: Session security (token expiration, refresh tokens)
 
 ### Phase 3: Database & RLS
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Security Base | 3/3 | Complete | 2026-01-15 |
-| 2. Auth & Session Security | 1/3 | In progress | - |
+| 2. Auth & Session Security | 2/3 | In progress | - |
 | 3. Database & RLS | 0/2 | Not started | - |
 | 4. Onboarding Flow | 0/3 | Not started | - |
 | 5. Scheduling Engine | 0/3 | Not started | - |
