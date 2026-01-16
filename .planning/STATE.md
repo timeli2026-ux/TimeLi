@@ -9,28 +9,29 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 1 of 10 (Foundation & Security Base)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-01-15 — Completed 01-03-PLAN.md
+Phase: 2 of 10 (Auth & Session Security)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-16 — Completed 02-01-PLAN.md
 
-Progress: ███░░░░░░░ 10%
+Progress: ████░░░░░░ 13%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 6 min
-- Total execution time: 0.30 hours
+- Total plans completed: 4
+- Average duration: 5.5 min
+- Total execution time: 0.37 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 3/3 | 18 min | 6 min |
+| 2 | 1/3 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (3 min), 01-03 (11 min)
+- Last 5 plans: 01-01 (4 min), 01-02 (3 min), 01-03 (11 min), 02-01 (4 min)
 - Trend: Consistent execution speed
 
 ## Accumulated Context
@@ -49,6 +50,8 @@ Recent decisions affecting current work:
 - Zod for env validation: Fail-fast on import, type-safe access
 - Graceful gitleaks skip: Pre-commit hook skips if gitleaks not installed
 - Dependabot weekly schedule: Minor/patch updates grouped to reduce PR noise
+- (auth) route group for auth pages: Clean URLs without /auth prefix
+- Middleware uses getUser() not getSession(): More reliable session validation per Supabase docs
 
 ### Pending Todos
 
@@ -60,6 +63,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-15
-Stopped at: Completed 01-03-PLAN.md (Phase 1 complete)
+Last session: 2026-01-16
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
