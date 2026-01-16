@@ -97,8 +97,8 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
           throw new Error(data.error || 'Failed to complete onboarding')
         }
 
-        // Redirect to dashboard on success
-        router.push('/dashboard')
+        // Redirect to dashboard on success (hard redirect to ensure middleware runs)
+        window.location.href = '/dashboard'
       } catch (err) {
         console.error('Error submitting onboarding:', err)
         setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')

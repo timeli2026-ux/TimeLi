@@ -208,14 +208,15 @@ export async function POST(request: Request) {
       console.warn('Could not save realms/actions (columns may not exist):', realmsActionsError)
     }
 
-    // Update profiles.onboarding_completed = true
+    // Upsert profiles.onboarding_completed = true (creates row if doesn't exist)
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({
+      .upsert({
+        id: user.id,
+        email: user.email ?? '',
         onboarding_completed: true,
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id)
+      }, { onConflict: 'id' })
 
     if (profileError) {
       console.error('Error updating profile:', profileError)
