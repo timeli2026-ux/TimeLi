@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   OnboardingData,
+  FixedCommitment,
+  InitialGoal,
   ONBOARDING_STEPS,
   DEFAULT_ONBOARDING_DATA,
 } from './types'
@@ -12,15 +15,20 @@ import { TimezoneStep } from './steps/timezone-step'
 import { SleepStep } from './steps/sleep-step'
 import { MealsStep } from './steps/meals-step'
 import { BufferStep } from './steps/buffer-step'
+import { CommuteStep } from './steps/commute-step'
+import { CommitmentsStep } from './steps/commitments-step'
+import { GoalsIntroStep } from './steps/goals-intro-step'
 
 interface WizardProps {
   initialStep?: number
 }
 
 export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(initialStep)
   const [formData, setFormData] = useState<OnboardingData>(DEFAULT_ONBOARDING_DATA)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const isFirstStep = currentStep === 0
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1
@@ -29,25 +37,105 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
   const handleBack = () => {
     if (!isFirstStep) {
       setCurrentStep((prev) => prev - 1)
+      setError(null)
     }
   }
 
   const handleNext = async () => {
+    setError(null)
+
     if (isLastStep) {
       // Submit onboarding data
       setIsSubmitting(true)
       try {
-        // TODO: Implement onboarding submission in Plan 03
-        console.log('Submitting onboarding data:', formData)
-        // After successful submission, redirect to dashboard
-      } catch (error) {
-        console.error('Error submitting onboarding:', error)
-      } finally {
+        const response = await fetch('/api/onboarding/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            preferences: {
+              timezone: formData.timezone,
+              sleepStart: formData.sleepStart,
+              sleepEnd: formData.sleepEnd,
+              mealBreakfastStart: formData.mealBreakfastStart,
+              mealBreakfastDuration: formData.mealBreakfastDuration,
+              mealLunchStart: formData.mealLunchStart,
+              mealLunchDuration: formData.mealLunchDuration,
+              mealDinnerStart: formData.mealDinnerStart,
+              mealDinnerDuration: formData.mealDinnerDuration,
+              bufferMinutes: formData.bufferMinutes,
+              commuteMorningStart: formData.hasCommute ? formData.commuteMorningStart : null,
+              commuteMorningDuration: formData.hasCommute ? formData.commuteMorningDuration : null,
+              commuteEveningStart: formData.hasCommute ? formData.commuteEveningStart : null,
+              commuteEveningDuration: formData.hasCommute ? formData.commuteEveningDuration : null,
+            },
+            commitments: formData.fixedCommitments.map((c) => ({
+              title: c.title,
+              dayOfWeek: c.dayOfWeek,
+              startTime: c.startTime,
+              endTime: c.endTime,
+            })),
+            goals: formData.goals.map((g) => ({
+              title: g.title,
+              hoursPerWeek: g.hoursPerWeek,
+            })),
+          }),
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || 'Failed to complete onboarding')
+        }
+
+        // Redirect to dashboard on success
+        router.push('/dashboard')
+      } catch (err) {
+        console.error('Error submitting onboarding:', err)
+        setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
         setIsSubmitting(false)
       }
     } else {
       setCurrentStep((prev) => prev + 1)
     }
+  }
+
+  // Commitment handlers
+  const handleAddCommitment = (commitment: Omit<FixedCommitment, 'id'>) => {
+    const newCommitment: FixedCommitment = {
+      ...commitment,
+      id: crypto.randomUUID(),
+    }
+    setFormData((prev) => ({
+      ...prev,
+      fixedCommitments: [...prev.fixedCommitments, newCommitment],
+    }))
+  }
+
+  const handleRemoveCommitment = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      fixedCommitments: prev.fixedCommitments.filter((c) => c.id !== id),
+    }))
+  }
+
+  // Goal handlers
+  const handleAddGoal = (goal: Omit<InitialGoal, 'id'>) => {
+    const newGoal: InitialGoal = {
+      ...goal,
+      id: crypto.randomUUID(),
+    }
+    setFormData((prev) => ({
+      ...prev,
+      goals: [...prev.goals, newGoal],
+    }))
+  }
+
+  const handleRemoveGoal = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      goals: prev.goals.filter((g) => g.id !== id),
+    }))
   }
 
   return (
@@ -80,8 +168,23 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
 
         {/* Step Content */}
         <CardContent className="min-h-[300px] flex items-center justify-center py-8">
-          <StepContent step={currentStep} formData={formData} setFormData={setFormData} />
+          <StepContent
+            step={currentStep}
+            formData={formData}
+            setFormData={setFormData}
+            onAddCommitment={handleAddCommitment}
+            onRemoveCommitment={handleRemoveCommitment}
+            onAddGoal={handleAddGoal}
+            onRemoveGoal={handleRemoveGoal}
+          />
         </CardContent>
+
+        {/* Error Message */}
+        {error && (
+          <div className="px-6 pb-4">
+            <p className="text-sm text-destructive text-center">{error}</p>
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="flex justify-between items-center px-6 pb-6">
@@ -112,11 +215,21 @@ interface StepContentProps {
   step: number
   formData: OnboardingData
   setFormData: React.Dispatch<React.SetStateAction<OnboardingData>>
+  onAddCommitment: (commitment: Omit<FixedCommitment, 'id'>) => void
+  onRemoveCommitment: (id: string) => void
+  onAddGoal: (goal: Omit<InitialGoal, 'id'>) => void
+  onRemoveGoal: (id: string) => void
 }
 
-function StepContent({ step, formData, setFormData }: StepContentProps) {
-  const stepInfo = ONBOARDING_STEPS[step]
-
+function StepContent({
+  step,
+  formData,
+  setFormData,
+  onAddCommitment,
+  onRemoveCommitment,
+  onAddGoal,
+  onRemoveGoal,
+}: StepContentProps) {
   // Step 0: Welcome
   if (step === 0) {
     return (
@@ -198,12 +311,53 @@ function StepContent({ step, formData, setFormData }: StepContentProps) {
     )
   }
 
-  // Steps 5-7: Placeholders for Plan 03
-  return (
-    <div className="text-center space-y-4">
-      <p className="text-muted-foreground">
-        {stepInfo.name} step content will be implemented in Plan 03
-      </p>
-    </div>
-  )
+  // Step 5: Commute
+  if (step === 5) {
+    return (
+      <CommuteStep
+        commute={{
+          hasCommute: formData.hasCommute,
+          morningStart: formData.commuteMorningStart,
+          morningDuration: formData.commuteMorningDuration,
+          eveningStart: formData.commuteEveningStart,
+          eveningDuration: formData.commuteEveningDuration,
+        }}
+        onChange={(commute) =>
+          setFormData((prev) => ({
+            ...prev,
+            hasCommute: commute.hasCommute,
+            commuteMorningStart: commute.morningStart,
+            commuteMorningDuration: commute.morningDuration,
+            commuteEveningStart: commute.eveningStart,
+            commuteEveningDuration: commute.eveningDuration,
+          }))
+        }
+      />
+    )
+  }
+
+  // Step 6: Fixed Commitments
+  if (step === 6) {
+    return (
+      <CommitmentsStep
+        commitments={formData.fixedCommitments}
+        onAdd={onAddCommitment}
+        onRemove={onRemoveCommitment}
+      />
+    )
+  }
+
+  // Step 7: Goals
+  if (step === 7) {
+    return (
+      <GoalsIntroStep
+        goals={formData.goals}
+        onAdd={onAddGoal}
+        onRemove={onRemoveGoal}
+      />
+    )
+  }
+
+  // Fallback
+  return null
 }

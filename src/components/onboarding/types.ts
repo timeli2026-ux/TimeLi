@@ -27,22 +27,31 @@ export interface OnboardingData {
   bufferMinutes: number
 
   // Commute
-  commuteMorningStart: string | null
-  commuteMorningDuration: number | null
-  commuteEveningStart: string | null
-  commuteEveningDuration: number | null
+  hasCommute: boolean
+  commuteMorningStart: string
+  commuteMorningDuration: number
+  commuteEveningStart: string
+  commuteEveningDuration: number
 
   // Fixed commitments
   fixedCommitments: FixedCommitment[]
+
+  // Initial goals
+  goals: InitialGoal[]
 }
 
 export interface FixedCommitment {
-  id?: string
+  id: string
   title: string
   dayOfWeek: number // 0 = Sunday, 6 = Saturday
   startTime: string // HH:mm format
   endTime: string
-  isRecurring: boolean
+}
+
+export interface InitialGoal {
+  id: string
+  title: string
+  hoursPerWeek: number
 }
 
 // Default values for onboarding data
@@ -57,14 +66,16 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   mealDinnerStart: '18:30',
   mealDinnerDuration: 60,
   bufferMinutes: 15,
-  commuteMorningStart: null,
-  commuteMorningDuration: null,
-  commuteEveningStart: null,
-  commuteEveningDuration: null,
+  hasCommute: false,
+  commuteMorningStart: '08:00',
+  commuteMorningDuration: 30,
+  commuteEveningStart: '17:30',
+  commuteEveningDuration: 30,
   fixedCommitments: [],
+  goals: [],
 }
 
-// 8 steps for the onboarding wizard
+// 7 steps for the onboarding wizard (0-6)
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 0,
@@ -103,7 +114,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 7,
-    name: 'Review',
-    description: 'Confirm your schedule preferences',
+    name: 'Goals',
+    description: 'What do you want to accomplish?',
   },
 ]
