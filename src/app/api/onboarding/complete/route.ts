@@ -108,13 +108,17 @@ export async function POST(request: Request) {
       title: sanitizeUserInput(a.title, { maxLength: 100 }),
     }))
 
-    // Sanitize meal names
-    const sanitizedMeals = preferences.meals.map((m) => ({
-      ...m,
-      name: sanitizeUserInput(m.name, { maxLength: 30 }),
-    }))
+    // Extract standard meals from the flexible meals array
+    const getMealData = (mealName: string) => {
+      const meal = preferences.meals.find((m) => m.name.toLowerCase() === mealName.toLowerCase())
+      return meal ? { start: meal.start, duration: meal.duration } : { start: null, duration: null }
+    }
 
-    // Upsert user preferences
+    const breakfast = getMealData('Breakfast')
+    const lunch = getMealData('Lunch')
+    const dinner = getMealData('Dinner')
+
+    // Upsert user preferences (using existing schema columns)
     const { error: preferencesError } = await supabase
       .from('user_preferences')
       .upsert(
@@ -123,8 +127,13 @@ export async function POST(request: Request) {
           timezone: sanitizedTimezone,
           sleep_start: preferences.sleepStart,
           sleep_end: preferences.sleepEnd,
-          meals_variable: preferences.mealsVariable,
-          meals: sanitizedMeals, // JSONB array of meals
+          // Map to existing meal columns
+          meal_breakfast_start: preferences.mealsVariable ? null : breakfast.start,
+          meal_breakfast_duration: preferences.mealsVariable ? null : breakfast.duration,
+          meal_lunch_start: preferences.mealsVariable ? null : lunch.start,
+          meal_lunch_duration: preferences.mealsVariable ? null : lunch.duration,
+          meal_dinner_start: preferences.mealsVariable ? null : dinner.start,
+          meal_dinner_duration: preferences.mealsVariable ? null : dinner.duration,
           commute_morning_start: preferences.commuteMorningStart,
           commute_morning_duration: preferences.commuteMorningDuration,
           commute_evening_start: preferences.commuteEveningStart,
@@ -133,6 +142,9 @@ export async function POST(request: Request) {
         },
         { onConflict: 'user_id' }
       )
+
+    // Note: Custom meals beyond breakfast/lunch/dinner will be stored in Phase 5
+    // when we add proper meals JSONB column to the schema
 
     if (preferencesError) {
       console.error('Error saving preferences:', preferencesError)
