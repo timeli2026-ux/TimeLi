@@ -3,6 +3,7 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
+import { Switch } from '@/components/ui/switch'
 
 interface MealData {
   start: string | null
@@ -13,6 +14,7 @@ interface MealsData {
   breakfast: MealData
   lunch: MealData
   dinner: MealData
+  isVariable?: boolean
 }
 
 interface MealsStepProps {
@@ -35,6 +37,13 @@ export function MealsStep({ meals, onChange }: MealsStepProps) {
     })
   }
 
+  const toggleVariable = () => {
+    onChange({
+      ...meals,
+      isVariable: !meals.isVariable,
+    })
+  }
+
   return (
     <div className="w-full max-w-lg mx-auto space-y-6">
       <div className="text-center space-y-2">
@@ -44,8 +53,33 @@ export function MealsStep({ meals, onChange }: MealsStepProps) {
         </p>
       </div>
 
-      <div className="grid gap-6">
-        {/* Breakfast */}
+      {/* Variable meals toggle */}
+      <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+        <div className="space-y-0.5">
+          <Label htmlFor="variable-meals" className="font-medium">
+            Variable meal times
+          </Label>
+          <p className="text-sm text-muted-foreground">
+            My meal times change day to day
+          </p>
+        </div>
+        <Switch
+          id="variable-meals"
+          checked={meals.isVariable || false}
+          onCheckedChange={toggleVariable}
+        />
+      </div>
+
+      {meals.isVariable ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>No problem! We won&apos;t block off specific meal times.</p>
+          <p className="text-sm mt-2">
+            You can always add meal breaks manually when scheduling your day.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-6">
+          {/* Breakfast */}
         <div className="grid grid-cols-2 gap-4 items-end">
           <div className="space-y-2">
             <Label htmlFor="breakfast-time">Breakfast</Label>
@@ -132,6 +166,7 @@ export function MealsStep({ meals, onChange }: MealsStepProps) {
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 }
