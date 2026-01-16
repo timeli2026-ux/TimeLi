@@ -7,7 +7,12 @@ import { z } from 'zod'
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
 
 const timeSchema = z.string().regex(timeRegex, 'Invalid time format (HH:mm)')
-const nullableTimeSchema = z.string().regex(timeRegex, 'Invalid time format (HH:mm)').nullable()
+// Nullable time schema that also accepts empty strings and transforms them to null
+const nullableTimeSchema = z.union([
+  z.string().regex(timeRegex),
+  z.string().length(0).transform(() => null),
+  z.null(),
+])
 
 // Request body validation schema
 const onboardingSchema = z.object({
@@ -61,6 +66,7 @@ export async function POST(request: Request) {
     const validationResult = onboardingSchema.safeParse(body)
 
     if (!validationResult.success) {
+      console.error('Validation error:', JSON.stringify(validationResult.error.issues, null, 2))
       return NextResponse.json(
         { error: 'Invalid request body', details: validationResult.error.issues },
         { status: 400 }
