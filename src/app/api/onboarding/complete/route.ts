@@ -26,6 +26,13 @@ const realmSchema = z.object({
   isCustom: z.boolean(),
 })
 
+// Meal schema for flexible meal times
+const mealSchema = z.object({
+  name: z.string().min(1).max(30),
+  start: timeSchema,
+  duration: z.number().min(15).max(90),
+})
+
 // Request body validation schema
 const onboardingSchema = z.object({
   preferences: z.object({
@@ -33,12 +40,7 @@ const onboardingSchema = z.object({
     sleepStart: timeSchema,
     sleepEnd: timeSchema,
     mealsVariable: z.boolean().optional().default(false),
-    mealBreakfastStart: nullableTimeSchema,
-    mealBreakfastDuration: nullableDurationSchema(15, 120),
-    mealLunchStart: nullableTimeSchema,
-    mealLunchDuration: nullableDurationSchema(15, 120),
-    mealDinnerStart: nullableTimeSchema,
-    mealDinnerDuration: nullableDurationSchema(15, 120),
+    meals: z.array(mealSchema).max(8), // Flexible array of meals
     commuteMorningStart: nullableTimeSchema,
     commuteMorningDuration: nullableDurationSchema(15, 90).nullable(),
     commuteEveningStart: nullableTimeSchema,
@@ -106,6 +108,12 @@ export async function POST(request: Request) {
       title: sanitizeUserInput(a.title, { maxLength: 100 }),
     }))
 
+    // Sanitize meal names
+    const sanitizedMeals = preferences.meals.map((m) => ({
+      ...m,
+      name: sanitizeUserInput(m.name, { maxLength: 30 }),
+    }))
+
     // Upsert user preferences
     const { error: preferencesError } = await supabase
       .from('user_preferences')
@@ -115,12 +123,8 @@ export async function POST(request: Request) {
           timezone: sanitizedTimezone,
           sleep_start: preferences.sleepStart,
           sleep_end: preferences.sleepEnd,
-          meal_breakfast_start: preferences.mealBreakfastStart,
-          meal_breakfast_duration: preferences.mealBreakfastDuration,
-          meal_lunch_start: preferences.mealLunchStart,
-          meal_lunch_duration: preferences.mealLunchDuration,
-          meal_dinner_start: preferences.mealDinnerStart,
-          meal_dinner_duration: preferences.mealDinnerDuration,
+          meals_variable: preferences.mealsVariable,
+          meals: sanitizedMeals, // JSONB array of meals
           commute_morning_start: preferences.commuteMorningStart,
           commute_morning_duration: preferences.commuteMorningDuration,
           commute_evening_start: preferences.commuteEveningStart,

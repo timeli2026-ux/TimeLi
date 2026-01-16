@@ -60,12 +60,11 @@ export function OnboardingWizard({ initialStep = 0 }: WizardProps) {
               sleepStart: formData.sleepStart,
               sleepEnd: formData.sleepEnd,
               mealsVariable: formData.mealsVariable,
-              mealBreakfastStart: formData.mealsVariable ? null : formData.mealBreakfastStart,
-              mealBreakfastDuration: formData.mealsVariable ? null : formData.mealBreakfastDuration,
-              mealLunchStart: formData.mealsVariable ? null : formData.mealLunchStart,
-              mealLunchDuration: formData.mealsVariable ? null : formData.mealLunchDuration,
-              mealDinnerStart: formData.mealsVariable ? null : formData.mealDinnerStart,
-              mealDinnerDuration: formData.mealsVariable ? null : formData.mealDinnerDuration,
+              meals: formData.mealsVariable ? [] : formData.meals.filter((m) => m.enabled).map((m) => ({
+                name: m.name,
+                start: m.start,
+                duration: m.duration,
+              })),
               commuteMorningStart: formData.hasCommute ? formData.commuteMorningStart : null,
               commuteMorningDuration: formData.hasCommute ? formData.commuteMorningDuration : null,
               commuteEveningStart: formData.hasCommute ? formData.commuteEveningStart : null,
@@ -309,31 +308,13 @@ function StepContent({
   if (step === 3) {
     return (
       <MealsStep
-        meals={{
-          breakfast: {
-            start: formData.mealBreakfastStart,
-            duration: formData.mealBreakfastDuration,
-          },
-          lunch: {
-            start: formData.mealLunchStart,
-            duration: formData.mealLunchDuration,
-          },
-          dinner: {
-            start: formData.mealDinnerStart,
-            duration: formData.mealDinnerDuration,
-          },
-          isVariable: formData.mealsVariable,
-        }}
-        onChange={(meals) =>
+        meals={formData.meals}
+        isVariable={formData.mealsVariable}
+        onChange={(meals, isVariable) =>
           setFormData((prev) => ({
             ...prev,
-            mealsVariable: meals.isVariable || false,
-            mealBreakfastStart: meals.isVariable ? null : meals.breakfast.start,
-            mealBreakfastDuration: meals.isVariable ? null : meals.breakfast.duration,
-            mealLunchStart: meals.isVariable ? null : meals.lunch.start,
-            mealLunchDuration: meals.isVariable ? null : meals.lunch.duration,
-            mealDinnerStart: meals.isVariable ? null : meals.dinner.start,
-            mealDinnerDuration: meals.isVariable ? null : meals.dinner.duration,
+            meals,
+            mealsVariable: isVariable,
           }))
         }
       />

@@ -7,6 +7,15 @@ export interface OnboardingStep {
   description: string
 }
 
+// Meal structure for flexible meal scheduling
+export interface Meal {
+  id: string
+  name: string
+  enabled: boolean
+  start: string // HH:mm format
+  duration: number // minutes
+}
+
 export interface OnboardingData {
   // Timezone
   timezone: string
@@ -15,14 +24,9 @@ export interface OnboardingData {
   sleepStart: string // Time in HH:mm format
   sleepEnd: string
 
-  // Meal times
+  // Meals - flexible array of meals (can toggle on/off, add custom)
   mealsVariable: boolean
-  mealBreakfastStart: string | null
-  mealBreakfastDuration: number | null // minutes
-  mealLunchStart: string | null
-  mealLunchDuration: number | null
-  mealDinnerStart: string | null
-  mealDinnerDuration: number | null
+  meals: Meal[]
 
   // Commute
   hasCommute: boolean
@@ -80,18 +84,20 @@ export const SUGGESTED_REALMS: Omit<LifeRealm, 'id'>[] = [
   { name: 'Mental Wellness', icon: '🧘', isCustom: false },
 ]
 
+// Default meals for onboarding
+export const DEFAULT_MEALS: Meal[] = [
+  { id: 'breakfast', name: 'Breakfast', enabled: true, start: '08:00', duration: 30 },
+  { id: 'lunch', name: 'Lunch', enabled: true, start: '12:00', duration: 45 },
+  { id: 'dinner', name: 'Dinner', enabled: true, start: '18:30', duration: 60 },
+]
+
 // Default values for onboarding data
 export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   timezone: 'America/New_York',
   sleepStart: '23:00',
   sleepEnd: '07:00',
   mealsVariable: false,
-  mealBreakfastStart: '08:00',
-  mealBreakfastDuration: 30,
-  mealLunchStart: '12:00',
-  mealLunchDuration: 45,
-  mealDinnerStart: '18:30',
-  mealDinnerDuration: 60,
+  meals: DEFAULT_MEALS.map((m) => ({ ...m, id: crypto.randomUUID() })),
   hasCommute: false,
   commuteMorningStart: '08:00',
   commuteMorningDuration: 30,
