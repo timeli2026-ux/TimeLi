@@ -20,12 +20,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Auth & Session Security** - Authentication with secure session handling
 - [x] **Phase 3: Database & RLS** - Row-level security, input sanitization, and early security hardening
 - [x] **Phase 4: Onboarding Flow** - 8-step wizard for user setup
-- [ ] **Phase 5: Goals & Preferences** - Goals management and preference system (moved earlier - needed by scheduling)
-- [ ] **Phase 6: Scheduling Engine** - Deterministic constraint satisfaction algorithm
-- [ ] **Phase 7: Calendar UI** - Week view with interactions
+- [ ] **Phase 5: Scheduling Engine** - Deterministic constraint satisfaction algorithm
+- [ ] **Phase 6: Calendar UI** - Week view with interactions
+- [ ] **Phase 7: Goals & Preferences** - Goals management and preference system
 - [ ] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
 - [ ] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
-- [ ] **Phase 10: Landing Page & Launch** - Landing page, weekly review, final audit
+- [ ] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
 
 ## Phase Details
 
@@ -89,44 +89,42 @@ Plans:
 - Renamed Goals to Actions & Habits with frequency controls
 - Database: user_preferences, fixed_commitments, profiles tables
 
-### Phase 5: Goals & Preferences
-**Goal**: Goals CRUD and comprehensive preference system
-**Depends on**: Phase 4
-**Research**: Unlikely (internal CRUD patterns)
-**Requirements**: GOAL-01, GOAL-02, PREF-01, PREF-02, PREF-03, PREF-04
-**Resequenced**: Moved from Phase 7 - scheduling engine needs goal data models
-**Plans**: TBD
-
-Plans:
-- [ ] 05-01: Goals list and form
-- [ ] 05-02: Preferences system (global and per-goal)
-- [ ] 05-03: Preferences panel UI
-
-### Phase 6: Scheduling Engine
+### Phase 5: Scheduling Engine
 **Goal**: Deterministic constraint satisfaction algorithm with scoring
-**Depends on**: Phase 5 (needs goal data models)
+**Depends on**: Phase 4 (uses onboarding data: actions, constraints, preferences)
 **Research**: Likely (constraint satisfaction algorithms, scheduling heuristics)
 **Research topics**: CSP algorithms for scheduling, soft constraint scoring functions, infeasibility detection
 **Requirements**: SCHED-01, SCHED-02, SCHED-03, SCHED-04, SCHED-05
-**Resequenced**: Moved from Phase 5 - depends on goals/preferences data models
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: Core CSP algorithm with hard constraints
-- [ ] 06-02: Soft constraint scoring system
-- [ ] 06-03: Infeasibility handling and flexibility classification
+- [ ] 05-01: Core CSP algorithm with hard constraints
+- [ ] 05-02: Soft constraint scoring system
+- [ ] 05-03: Infeasibility handling and flexibility classification
 
-### Phase 7: Calendar UI
+### Phase 6: Calendar UI
 **Goal**: Interactive week view with drag/drop and event management
-**Depends on**: Phase 6
+**Depends on**: Phase 5
 **Research**: Unlikely (standard calendar UI patterns)
 **Requirements**: CAL-01, CAL-02, CAL-03, CAL-04, CAL-05, CAL-06, CAL-07, CAL-08
 **Plans**: TBD
 
 Plans:
-- [ ] 07-01: Week view grid (7 columns, 15-min slots)
-- [ ] 07-02: Event display (locked vs AI-generated styling)
-- [ ] 07-03: Drag/drop and completion logging
+- [ ] 06-01: Week view grid (7 columns, 15-min slots)
+- [ ] 06-02: Event display (locked vs AI-generated styling)
+- [ ] 06-03: Drag/drop and completion logging
+
+### Phase 7: Goals & Preferences
+**Goal**: Goals CRUD and comprehensive preference editing
+**Depends on**: Phase 6
+**Research**: Unlikely (internal CRUD patterns)
+**Requirements**: GOAL-01, GOAL-02, PREF-01, PREF-02, PREF-03, PREF-04
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: Goals/Actions list and edit form
+- [ ] 07-02: Preferences system (global and per-goal)
+- [ ] 07-03: Preferences panel UI
 
 ### Phase 8: LLM Gateway
 **Goal**: Server-side AI endpoints with secure key handling and logging
@@ -155,7 +153,7 @@ Plans:
 - [ ] 09-02: Stripe integration with webhook verification
 - [ ] 09-03: Usage tracking and trial logic
 
-### Phase 10: Landing Page & Launch
+### Phase 10: Hardening & Launch
 **Goal**: Landing page, weekly review feature, and final security audit
 **Depends on**: Phase 9
 **Research**: Unlikely (standard patterns)
@@ -180,22 +178,15 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Auth & Session Security | 3/3 | Complete | 2026-01-16 |
 | 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
 | 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
-| 5. Goals & Preferences | 0/3 | Not started | - |
-| 6. Scheduling Engine | 0/3 | Not started | - |
-| 7. Calendar UI | 0/3 | Not started | - |
+| 5. Scheduling Engine | 0/3 | Not started | - |
+| 6. Calendar UI | 0/3 | Not started | - |
+| 7. Goals & Preferences | 0/3 | Not started | - |
 | 8. LLM Gateway | 0/4 | Not started | - |
 | 9. Settings & Billing | 0/3 | Not started | - |
-| 10. Landing Page & Launch | 0/4 | Not started | - |
+| 10. Hardening & Launch | 0/4 | Not started | - |
 
-## Resequencing Notes (2026-01-16)
+## Notes
 
-**Changes made:**
-1. **Phase 3 expanded** to include security hardening (headers, rate limiting) - originally in Phase 10
-2. **Goals & Preferences moved earlier** (5 → 5) - scheduling engine needs goal data models
-3. **Scheduling Engine moved later** (5 → 6) - depends on goals data being defined first
-4. **Phase 10 renamed** "Hardening & Launch" → "Landing Page & Launch" - basic hardening now in Phase 3
+**Phase 3 expanded** to include security hardening (headers, rate limiting) - originally in Phase 10. Security hardening should happen early, not at launch.
 
-**Rationale:**
-- Security hardening should happen early, not at launch
-- Goals data models must exist before scheduling can use them
-- Landing page still appropriate at end (feature complete for demo)
+**Phase 4 (Onboarding)** now collects Actions & Habits with frequency data, providing the goal data needed for the scheduling engine. Goals & Preferences phase (7) is for editing these after onboarding.

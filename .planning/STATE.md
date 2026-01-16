@@ -5,11 +5,11 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 5 — Goals & Preferences
+**Current focus:** Phase 5 — Scheduling Engine
 
 ## Current Position
 
-Phase: 5 of 10 (Goals & Preferences)
+Phase: 5 of 10 (Scheduling Engine)
 Plan: 0 of 3 in current phase
 Status: Ready to start
 Last activity: 2026-01-16 — Completed Phase 4 (Onboarding Flow)
