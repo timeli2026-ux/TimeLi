@@ -360,6 +360,91 @@ export function generateEventId(): string {
   return `evt_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 }
 
+// =============================================================================
+// INFEASIBILITY TYPES
+// =============================================================================
+
+/**
+ * Reason why a goal cannot be scheduled
+ */
+export interface InfeasibilityReason {
+  type: 'insufficient_time' | 'hard_conflict' | 'deadline_impossible' | 'anchor_unavailable'
+  goalId: string
+  goalTitle: string
+  description: string
+  requiredMinutes: number
+  availableMinutes?: number
+  conflictingGoalId?: string
+}
+
+/**
+ * Trade-off option to resolve infeasibility
+ * Uses benefit-focused language
+ */
+export interface TradeOffOption {
+  id: string
+  description: string
+  impact: string // Human-readable impact description
+  action: 'reduce_duration' | 'reduce_frequency' | 'skip_goal' | 'remove_deadline' | 'change_anchor'
+  goalId: string
+  currentValue?: number
+  suggestedValue?: number
+  minutesSaved: number
+}
+
+/**
+ * Minimum viable schedule when all goals cannot fit
+ */
+export interface MinimumViableSchedule {
+  schedule: WeekSchedule
+  includedGoals: string[] // Goal IDs that fit
+  excludedGoals: string[] // Goal IDs that don't fit
+  coveragePercent: number // What % of requested goal hours are covered
+}
+
+/**
+ * Severity level of infeasibility
+ */
+export type InfeasibilitySeverity = 'mild' | 'moderate' | 'severe'
+
+/**
+ * Complete report on schedule infeasibility
+ */
+export interface InfeasibilityReport {
+  isInfeasible: boolean
+  reasons: InfeasibilityReason[]
+  tradeOffs: TradeOffOption[]
+  severity: InfeasibilitySeverity
+  minimumViableSchedule?: MinimumViableSchedule // What CAN be scheduled
+  summary: string // Human-readable summary
+}
+
+// =============================================================================
+// FLEXIBILITY TYPES
+// =============================================================================
+
+/**
+ * How flexible an event is for rescheduling
+ */
+export type FlexibilityLevel = 'low' | 'medium' | 'high'
+
+/**
+ * Information about event flexibility
+ */
+export interface FlexibilityInfo {
+  level: FlexibilityLevel
+  alternativeSlots: number
+  explanation: string
+  canReschedule: boolean
+}
+
+/**
+ * Schedule event with flexibility information
+ */
+export interface ScheduleEventWithFlexibility extends ScheduleEvent {
+  flexibility: FlexibilityInfo
+}
+
 /**
  * Create a TimeSlot from components
  */
