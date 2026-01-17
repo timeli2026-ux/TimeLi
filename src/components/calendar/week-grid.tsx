@@ -27,6 +27,7 @@ interface WeekGridProps {
   events?: ScheduleEventWithFlexibility[]
   onEventClick?: (event: ScheduleEventWithFlexibility) => void
   onEventMove?: (eventId: string, newSlot: TimeSlot) => void
+  onMarkComplete?: (event: ScheduleEventWithFlexibility) => void
   isLoading?: boolean
   startHour?: number
   endHour?: number
@@ -118,6 +119,7 @@ export function WeekGrid({
   events = [],
   onEventClick,
   onEventMove,
+  onMarkComplete,
   isLoading = false,
   startHour = DEFAULT_DAY_START_HOUR,
   endHour = DEFAULT_DAY_END_HOUR,
@@ -384,6 +386,7 @@ export function WeekGrid({
                             event={event}
                             open={openEventId === event.id}
                             onOpenChange={(isOpen) => handlePopoverChange(event.id, isOpen)}
+                            onMarkComplete={() => onMarkComplete?.(event)}
                           >
                             <CalendarEvent
                               event={event}

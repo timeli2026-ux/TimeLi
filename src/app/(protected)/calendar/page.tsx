@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Calendar, CalendarX } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { WeekGrid } from '@/components/calendar/week-grid'
+import { CompletionModal, type CompletionStatus } from '@/components/calendar/completion-modal'
 import type { ScheduleEventWithFlexibility, TimeSlot } from '@/lib/scheduling/types'
 import {
   getWeekStart,
@@ -349,6 +350,9 @@ export default function CalendarPage() {
   // Mock events - will be replaced with API data
   const [events, setEvents] = useState<ScheduleEventWithFlexibility[]>([])
 
+  // Completion modal state
+  const [completionEvent, setCompletionEvent] = useState<ScheduleEventWithFlexibility | null>(null)
+
   // Calculate navigation bounds
   const canGoBack = useMemo(() => {
     // Cannot go before current week
@@ -463,6 +467,44 @@ export default function CalendarPage() {
     }
   }, [events])
 
+  // Handle mark complete action
+  const handleMarkComplete = useCallback((event: ScheduleEventWithFlexibility) => {
+    setCompletionEvent(event)
+  }, [])
+
+  // Handle completion submission
+  const handleCompletion = useCallback(async (status: CompletionStatus, notes?: string) => {
+    if (!completionEvent) return
+
+    // Show toast based on status
+    const statusLabels: Record<CompletionStatus, string> = {
+      completed: 'completed',
+      partial: 'partially completed',
+      skipped: 'skipped',
+    }
+    toast.success(`Marked as ${statusLabels[status]}`)
+
+    // Call API (for logging, not persisted yet)
+    try {
+      const response = await fetch('/api/schedule/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: completionEvent.id,
+          status,
+          notes,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to log completion')
+      }
+    } catch {
+      toast.error('Network error - completion not logged')
+    }
+  }, [completionEvent])
+
   return (
     <div className="flex flex-col h-full">
       {/* Header with navigation */}
@@ -519,9 +561,22 @@ export default function CalendarPage() {
             events={events}
             onEventClick={handleEventClick}
             onEventMove={handleEventMove}
+            onMarkComplete={handleMarkComplete}
           />
         )}
       </div>
+
+      {/* Completion Modal */}
+      {completionEvent && (
+        <CompletionModal
+          event={completionEvent}
+          open={!!completionEvent}
+          onOpenChange={(open) => {
+            if (!open) setCompletionEvent(null)
+          }}
+          onComplete={handleCompletion}
+        />
+      )}
     </div>
   )
 }

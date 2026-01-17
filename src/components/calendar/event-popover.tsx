@@ -25,6 +25,7 @@ interface EventPopoverProps {
   event: ScheduleEventWithFlexibility
   open: boolean
   onOpenChange: (open: boolean) => void
+  onMarkComplete?: () => void
   children: React.ReactNode
 }
 
@@ -38,7 +39,7 @@ interface EventPopoverProps {
  * 4. Flexibility Section - Flexibility level and alternatives (goal events only)
  * 5. Actions - Mark Complete, Reschedule (placeholders)
  */
-export function EventPopover({ event, open, onOpenChange, children }: EventPopoverProps) {
+export function EventPopover({ event, open, onOpenChange, onMarkComplete, children }: EventPopoverProps) {
   const isGoal = event.type === 'goal'
   const timeRange = `${formatTimeDisplay(event.slot.startTime)} - ${formatTimeDisplay(event.slot.endTime)}`
   const dayName = getDayName(event.slot.dayOfWeek)
@@ -132,9 +133,17 @@ export function EventPopover({ event, open, onOpenChange, children }: EventPopov
           </div>
         )}
 
-        {/* Actions Section (placeholders for Plan 06-03) */}
+        {/* Actions Section */}
         <div className="p-2 flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1 gap-1.5" disabled>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 gap-1.5"
+            onClick={() => {
+              onOpenChange(false) // Close popover
+              onMarkComplete?.()
+            }}
+          >
             <CheckCircle className="h-3.5 w-3.5" />
             Mark Complete
           </Button>
