@@ -111,7 +111,7 @@ Plans:
 
 Plans:
 - [x] 06-01: Week view grid (7 columns, 15-min slots)
-- [ ] 06-02: Event display (locked vs AI-generated styling)
+- [x] 06-02: Event display (locked vs AI-generated styling)
 - [ ] 06-03: Drag/drop and completion logging
 
 ### Phase 7: Goals & Preferences
@@ -179,7 +179,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
 | 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
 | 5. Scheduling Engine | 3/3 | Complete | 2026-01-17 |
-| 6. Calendar UI | 1/3 | In progress | - |
+| 6. Calendar UI | 2/3 | In progress | - |
 | 7. Goals & Preferences | 0/3 | Not started | - |
 | 8. LLM Gateway | 0/4 | Not started | - |
 | 9. Settings & Billing | 0/3 | Not started | - |

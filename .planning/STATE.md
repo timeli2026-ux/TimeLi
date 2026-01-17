@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 6 of 10 (Calendar UI)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-17 — Completed 06-01-PLAN.md
+Last activity: 2026-01-17 — Completed 06-02-PLAN.md
 
-Progress: ████████████████░░░ 53%
+Progress: ██████████████████░░ 57%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 5 min
-- Total execution time: 1.3 hours
+- Total execution time: 1.4 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: ████████████████░░░ 53%
 | 3 | 3/3 | 12 min | 4 min |
 | 4 | 3/3 | 15 min | 5 min |
 | 5 | 3/3 | 15 min | 5 min |
-| 6 | 1/3 | 3 min | 3 min |
+| 6 | 2/3 | 8 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (7 min), 05-01 (5 min), 05-02 (5 min), 05-03 (5 min), 06-01 (3 min)
+- Last 5 plans: 05-01 (5 min), 05-02 (5 min), 05-03 (5 min), 06-01 (3 min), 06-02 (5 min)
 - Trend: Consistent execution speed
 
 ## Accumulated Context
@@ -73,6 +73,9 @@ Recent decisions affecting current work:
 - (onboarding) Slider steps set to 15 min for durations, 5 min for buffer time
 - (calendar) 16px per 15-min slot (64px per hour) for compact but readable grid
 - (calendar) Week starts Monday (Mon-Sun), navigation limited to current week through +4 weeks
+- (calendar) 8 realm colors for visual distinction (health, career, learning, relationships, creativity, finance, personal, spiritual)
+- (calendar) Flexibility dots: green=high, yellow=medium, red=low
+- (calendar) Single popover open at a time for clean UX
 
 ### Pending Todos
 
@@ -85,5 +88,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed 06-01-PLAN.md (Week Grid Foundation)
+Stopped at: Completed 06-02-PLAN.md (Event Display)
 Resume file: None
