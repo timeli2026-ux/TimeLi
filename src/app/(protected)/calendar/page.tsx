@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { WeekGrid } from '@/components/calendar/week-grid'
+import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
 import {
   getWeekStart,
   formatWeekRange,
@@ -14,6 +15,326 @@ import {
 // Maximum weeks user can navigate into the future
 const MAX_FUTURE_WEEKS = 4
 
+// =============================================================================
+// MOCK DATA FOR TESTING
+// =============================================================================
+
+/**
+ * Generate mock schedule data for testing the calendar display
+ * This will be replaced with real data from the API in Plan 06-03
+ */
+function generateMockEvents(): ScheduleEventWithFlexibility[] {
+  return [
+    // Monday - Locked events
+    {
+      id: 'evt_sleep_mon',
+      type: 'sleep',
+      title: 'Sleep',
+      slot: {
+        dayOfWeek: 1, // Monday
+        startTime: '06:00',
+        endTime: '07:00',
+        durationMinutes: 60,
+      },
+      isLocked: true,
+      flexibility: {
+        level: 'low',
+        alternativeSlots: 0,
+        explanation: 'Fixed sleep schedule',
+        canReschedule: false,
+      },
+    },
+    {
+      id: 'evt_commute_mon',
+      type: 'commute',
+      title: 'Morning Commute',
+      slot: {
+        dayOfWeek: 1,
+        startTime: '08:00',
+        endTime: '08:45',
+        durationMinutes: 45,
+      },
+      isLocked: true,
+      flexibility: {
+        level: 'low',
+        alternativeSlots: 0,
+        explanation: 'Fixed commute time',
+        canReschedule: false,
+      },
+    },
+    {
+      id: 'evt_meeting_mon',
+      type: 'fixed',
+      title: 'Team Standup',
+      slot: {
+        dayOfWeek: 1,
+        startTime: '09:00',
+        endTime: '09:30',
+        durationMinutes: 30,
+      },
+      isLocked: true,
+      flexibility: {
+        level: 'low',
+        alternativeSlots: 0,
+        explanation: 'Recurring team meeting',
+        canReschedule: false,
+      },
+    },
+    // Monday - Goal events
+    {
+      id: 'evt_deepwork_mon',
+      type: 'goal',
+      title: 'Deep Work: Project Alpha',
+      slot: {
+        dayOfWeek: 1,
+        startTime: '10:00',
+        endTime: '11:30',
+        durationMinutes: 90,
+      },
+      goalId: 'goal_1',
+      realmId: 'career',
+      isLocked: false,
+      cognitiveLoad: 'high',
+      rationale: {
+        primary: 'Peak energy after morning routine',
+        secondary: 'Your chronotype shows high focus at this time',
+        factors: ['Energy peak', 'Clear calendar', 'No meetings nearby'],
+      },
+      flexibility: {
+        level: 'high',
+        alternativeSlots: 6,
+        explanation: 'Multiple slots available this week',
+        canReschedule: true,
+      },
+    },
+    {
+      id: 'evt_lunch_mon',
+      type: 'meal',
+      title: 'Lunch',
+      slot: {
+        dayOfWeek: 1,
+        startTime: '12:00',
+        endTime: '12:45',
+        durationMinutes: 45,
+      },
+      isLocked: true,
+      flexibility: {
+        level: 'low',
+        alternativeSlots: 0,
+        explanation: 'Fixed lunch time',
+        canReschedule: false,
+      },
+    },
+    {
+      id: 'evt_learning_mon',
+      type: 'goal',
+      title: 'Learn TypeScript',
+      slot: {
+        dayOfWeek: 1,
+        startTime: '14:00',
+        endTime: '15:00',
+        durationMinutes: 60,
+      },
+      goalId: 'goal_2',
+      realmId: 'learning',
+      isLocked: false,
+      cognitiveLoad: 'medium',
+      rationale: {
+        primary: 'Low-energy slot after lunch',
+        secondary: 'Reading and tutorials work well during afternoon dip',
+        factors: ['Post-lunch', 'Medium cognitive load'],
+      },
+      flexibility: {
+        level: 'medium',
+        alternativeSlots: 3,
+        explanation: 'A few alternative slots available',
+        canReschedule: true,
+      },
+    },
+    // Tuesday - Mix of events
+    {
+      id: 'evt_gym_tue',
+      type: 'goal',
+      title: 'Gym - Strength Training',
+      slot: {
+        dayOfWeek: 2,
+        startTime: '07:00',
+        endTime: '08:00',
+        durationMinutes: 60,
+      },
+      goalId: 'goal_3',
+      realmId: 'health',
+      isLocked: false,
+      cognitiveLoad: 'low',
+      rationale: {
+        primary: 'Morning exercise boosts energy',
+        secondary: 'Physical activity before desk work improves focus',
+        factors: ['Morning slot', 'Exercise-first habit'],
+      },
+      flexibility: {
+        level: 'low',
+        alternativeSlots: 1,
+        explanation: 'Limited gym availability',
+        canReschedule: true,
+      },
+    },
+    {
+      id: 'evt_meeting_tue',
+      type: 'fixed',
+      title: '1:1 with Manager',
+      slot: {
+        dayOfWeek: 2,
+        startTime: '10:00',
+        endTime: '10:30',
+        durationMinutes: 30,
+      },
+      isLocked: true,
+      flexibility: {
+        level: 'low',
+        alternativeSlots: 0,
+        explanation: 'Recurring 1:1 meeting',
+        canReschedule: false,
+      },
+    },
+    {
+      id: 'evt_creative_tue',
+      type: 'goal',
+      title: 'Creative Writing',
+      slot: {
+        dayOfWeek: 2,
+        startTime: '16:00',
+        endTime: '17:30',
+        durationMinutes: 90,
+      },
+      goalId: 'goal_4',
+      realmId: 'creativity',
+      isLocked: false,
+      cognitiveLoad: 'medium',
+      rationale: {
+        primary: 'Creative work in afternoon energy window',
+        secondary: 'Second energy peak after mid-afternoon',
+        factors: ['Energy recovery', 'Creative flow time'],
+      },
+      flexibility: {
+        level: 'high',
+        alternativeSlots: 4,
+        explanation: 'Flexible goal with multiple options',
+        canReschedule: true,
+      },
+    },
+    // Wednesday
+    {
+      id: 'evt_finance_wed',
+      type: 'goal',
+      title: 'Budget Review',
+      slot: {
+        dayOfWeek: 3,
+        startTime: '09:00',
+        endTime: '09:45',
+        durationMinutes: 45,
+      },
+      goalId: 'goal_5',
+      realmId: 'finance',
+      isLocked: false,
+      cognitiveLoad: 'medium',
+      rationale: {
+        primary: 'Fresh mind for numbers',
+        secondary: 'Financial tasks need focus but not creativity',
+        factors: ['Morning clarity', 'Analytical time'],
+      },
+      flexibility: {
+        level: 'medium',
+        alternativeSlots: 2,
+        explanation: 'Can move to similar morning slots',
+        canReschedule: true,
+      },
+    },
+    {
+      id: 'evt_meditation_wed',
+      type: 'goal',
+      title: 'Meditation',
+      slot: {
+        dayOfWeek: 3,
+        startTime: '12:30',
+        endTime: '13:00',
+        durationMinutes: 30,
+      },
+      goalId: 'goal_6',
+      realmId: 'spiritual',
+      isLocked: false,
+      cognitiveLoad: 'low',
+      rationale: {
+        primary: 'Mid-day reset before afternoon',
+        factors: ['Stress relief', 'Energy reset'],
+      },
+      flexibility: {
+        level: 'high',
+        alternativeSlots: 5,
+        explanation: 'Can meditate anytime',
+        canReschedule: true,
+      },
+    },
+    // Thursday
+    {
+      id: 'evt_personal_thu',
+      type: 'goal',
+      title: 'Personal Admin',
+      slot: {
+        dayOfWeek: 4,
+        startTime: '11:00',
+        endTime: '11:45',
+        durationMinutes: 45,
+      },
+      goalId: 'goal_7',
+      realmId: 'personal',
+      isLocked: false,
+      cognitiveLoad: 'low',
+      rationale: {
+        primary: 'Light tasks before lunch',
+        secondary: 'Administrative work fits low-energy slots',
+        factors: ['Pre-lunch slot', 'Low mental load'],
+      },
+      flexibility: {
+        level: 'high',
+        alternativeSlots: 8,
+        explanation: 'Very flexible goal',
+        canReschedule: true,
+      },
+    },
+    // Friday
+    {
+      id: 'evt_relationships_fri',
+      type: 'goal',
+      title: 'Call Mom',
+      slot: {
+        dayOfWeek: 5,
+        startTime: '17:00',
+        endTime: '17:30',
+        durationMinutes: 30,
+      },
+      goalId: 'goal_8',
+      realmId: 'relationships',
+      isLocked: false,
+      cognitiveLoad: 'low',
+      rationale: {
+        primary: 'End of week connection time',
+        secondary: 'Winding down for the weekend',
+        factors: ['Friday evening', 'Social time'],
+      },
+      flexibility: {
+        level: 'medium',
+        alternativeSlots: 2,
+        explanation: 'Depends on availability',
+        canReschedule: true,
+      },
+    },
+  ]
+}
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
+
 export default function CalendarPage() {
   // Get current week's Monday as the baseline
   const currentWeekStart = useMemo(() => getWeekStart(new Date()), [])
@@ -23,6 +344,9 @@ export default function CalendarPage() {
 
   // Loading state placeholder for future schedule fetching
   const [isLoading, setIsLoading] = useState(false)
+
+  // Mock events - will be replaced with API data
+  const [events, setEvents] = useState<ScheduleEventWithFlexibility[]>([])
 
   // Calculate navigation bounds
   const canGoBack = useMemo(() => {
@@ -57,15 +381,30 @@ export default function CalendarPage() {
     setWeekStart(currentWeekStart)
   }, [currentWeekStart])
 
-  // Placeholder for fetching schedule on week change
+  // Load mock events on mount and week change
   useEffect(() => {
-    // TODO: Fetch schedule from API when week changes
     console.log('Week changed to:', weekStart.toISOString())
     setIsLoading(true)
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 200)
+
+    // Simulate loading with mock data
+    const timer = setTimeout(() => {
+      // Only show events for current week (mock data uses current week days)
+      if (isSameDay(weekStart, currentWeekStart)) {
+        setEvents(generateMockEvents())
+      } else {
+        // Empty schedule for other weeks (would be fetched from API)
+        setEvents([])
+      }
+      setIsLoading(false)
+    }, 200)
+
     return () => clearTimeout(timer)
-  }, [weekStart])
+  }, [weekStart, currentWeekStart])
+
+  // Handle event click
+  const handleEventClick = useCallback((event: ScheduleEventWithFlexibility) => {
+    console.log('Event clicked:', event.title)
+  }, [])
 
   return (
     <div className="flex flex-col h-full">
@@ -115,13 +454,23 @@ export default function CalendarPage() {
       <div className="flex-1 border rounded-lg overflow-hidden">
         {isLoading ? (
           <CalendarSkeleton />
+        ) : events.length === 0 && !isCurrentWeek ? (
+          <EmptyState />
         ) : (
-          <WeekGrid weekStart={weekStart} />
+          <WeekGrid
+            weekStart={weekStart}
+            events={events}
+            onEventClick={handleEventClick}
+          />
         )}
       </div>
     </div>
   )
 }
+
+// =============================================================================
+// LOADING SKELETON
+// =============================================================================
 
 /**
  * Loading skeleton for calendar grid
@@ -136,8 +485,57 @@ function CalendarSkeleton() {
           <div key={i} className="flex-1 h-12 border-l border-border bg-muted/30" />
         ))}
       </div>
-      {/* Grid skeleton */}
-      <div className="flex-1 bg-muted/20" />
+      {/* Grid skeleton with event placeholders */}
+      <div className="flex-1 flex">
+        <div className="w-[60px] bg-muted/20" />
+        <div className="flex-1 flex">
+          {Array.from({ length: 7 }).map((_, dayIndex) => (
+            <div key={dayIndex} className="flex-1 border-l border-border relative">
+              {/* Random event placeholders */}
+              {dayIndex < 5 && (
+                <>
+                  <div
+                    className="absolute left-1 right-1 bg-muted/40 rounded"
+                    style={{
+                      top: `${50 + dayIndex * 20}px`,
+                      height: '48px',
+                    }}
+                  />
+                  {dayIndex % 2 === 0 && (
+                    <div
+                      className="absolute left-1 right-1 bg-muted/30 rounded"
+                      style={{
+                        top: `${150 + dayIndex * 30}px`,
+                        height: '64px',
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// =============================================================================
+// EMPTY STATE
+// =============================================================================
+
+/**
+ * Empty state when no events are scheduled
+ */
+function EmptyState() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-center p-8">
+      <CalendarX className="h-12 w-12 text-muted-foreground mb-4" />
+      <h2 className="text-lg font-medium mb-2">No events scheduled</h2>
+      <p className="text-sm text-muted-foreground max-w-sm">
+        Events for this week haven&apos;t been generated yet. Go to the dashboard to
+        generate your schedule.
+      </p>
     </div>
   )
 }
