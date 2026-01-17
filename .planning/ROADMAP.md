@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Auth & Session Security** - Authentication with secure session handling
 - [x] **Phase 3: Database & RLS** - Row-level security, input sanitization, and early security hardening
 - [x] **Phase 4: Onboarding Flow** - 8-step wizard for user setup
-- [ ] **Phase 5: Scheduling Engine** - Deterministic constraint satisfaction algorithm
+- [x] **Phase 5: Scheduling Engine** - Deterministic constraint satisfaction algorithm
 - [ ] **Phase 6: Calendar UI** - Week view with interactions
 - [ ] **Phase 7: Goals & Preferences** - Goals management and preference system
 - [ ] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
@@ -98,9 +98,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 05-01: Core CSP algorithm with hard constraints
-- [ ] 05-02: Soft constraint scoring system
-- [ ] 05-03: Infeasibility handling and flexibility classification
+- [x] 05-01: Core CSP algorithm with hard constraints
+- [x] 05-02: Soft constraint scoring system
+- [x] 05-03: Infeasibility handling and flexibility classification
 
 ### Phase 6: Calendar UI
 **Goal**: Interactive week view with drag/drop and event management
@@ -178,7 +178,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Auth & Session Security | 3/3 | Complete | 2026-01-16 |
 | 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
 | 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
-| 5. Scheduling Engine | 0/3 | Not started | - |
+| 5. Scheduling Engine | 3/3 | Complete | 2026-01-17 |
 | 6. Calendar UI | 0/3 | Not started | - |
 | 7. Goals & Preferences | 0/3 | Not started | - |
 | 8. LLM Gateway | 0/4 | Not started | - |
