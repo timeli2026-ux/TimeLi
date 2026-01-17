@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, type DragEvent } from 'react'
 import {
   getWeekDates,
   formatDayHeader,
@@ -11,8 +11,8 @@ import {
   DEFAULT_DAY_START_HOUR,
   DEFAULT_DAY_END_HOUR,
 } from '@/lib/calendar-utils'
-import { timeToMinutes } from '@/lib/scheduling/types'
-import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
+import { timeToMinutes, minutesToTime, alignToGrid } from '@/lib/scheduling/types'
+import type { ScheduleEventWithFlexibility, TimeSlot } from '@/lib/scheduling/types'
 import { cn } from '@/lib/utils'
 import { TimeColumn, SLOT_HEIGHT } from './time-column'
 import { CalendarEvent } from './calendar-event'
@@ -26,6 +26,8 @@ interface WeekGridProps {
   weekStart: Date
   events?: ScheduleEventWithFlexibility[]
   onEventClick?: (event: ScheduleEventWithFlexibility) => void
+  onEventMove?: (eventId: string, newSlot: TimeSlot) => void
+  isLoading?: boolean
   startHour?: number
   endHour?: number
   className?: string
@@ -115,6 +117,8 @@ export function WeekGrid({
   weekStart,
   events = [],
   onEventClick,
+  onEventMove,
+  isLoading = false,
   startHour = DEFAULT_DAY_START_HOUR,
   endHour = DEFAULT_DAY_END_HOUR,
   className,
@@ -127,6 +131,10 @@ export function WeekGrid({
   // Track which popover is open
   const [openEventId, setOpenEventId] = useState<string | null>(null)
 
+  // Drag and drop state
+  const [dragOverSlot, setDragOverSlot] = useState<{ dayIndex: number; slotIndex: number } | null>(null)
+  const [draggingEvent, setDraggingEvent] = useState<ScheduleEventWithFlexibility | null>(null)
+
   // Handle popover state
   const handlePopoverChange = useCallback(
     (eventId: string, isOpen: boolean) => {
@@ -134,6 +142,65 @@ export function WeekGrid({
     },
     []
   )
+
+  // Handle drag start
+  const handleDragStart = useCallback((event: ScheduleEventWithFlexibility) => {
+    setDraggingEvent(event)
+    setOpenEventId(null) // Close any open popover
+  }, [])
+
+  // Handle drag end
+  const handleDragEnd = useCallback(() => {
+    setDraggingEvent(null)
+    setDragOverSlot(null)
+  }, [])
+
+  // Handle drag over a slot
+  const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>, dayIndex: number, slotIndex: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverSlot({ dayIndex, slotIndex })
+  }, [])
+
+  // Handle drag leave
+  const handleDragLeave = useCallback(() => {
+    setDragOverSlot(null)
+  }, [])
+
+  // Handle drop on a slot
+  const handleDrop = useCallback((e: DragEvent<HTMLDivElement>, dayIndex: number, slotIndex: number) => {
+    e.preventDefault()
+    setDragOverSlot(null)
+    setDraggingEvent(null)
+
+    // Get the event data from the drag transfer
+    const eventData = e.dataTransfer.getData('application/json')
+    if (!eventData) return
+
+    try {
+      const event: ScheduleEventWithFlexibility = JSON.parse(eventData)
+
+      // Convert calendar day index to JS day of week
+      const jsDayOfWeek = calendarDayToJsDay(dayIndex)
+
+      // Calculate new start time from slot index
+      const newStartMinutes = alignToGrid(startHour * 60 + slotIndex * SLOT_DURATION_MINUTES)
+      const newEndMinutes = newStartMinutes + event.slot.durationMinutes
+
+      // Create new time slot
+      const newSlot: TimeSlot = {
+        dayOfWeek: jsDayOfWeek,
+        startTime: minutesToTime(newStartMinutes),
+        endTime: minutesToTime(newEndMinutes),
+        durationMinutes: event.slot.durationMinutes,
+      }
+
+      // Call the move handler
+      onEventMove?.(event.id, newSlot)
+    } catch {
+      console.error('Failed to parse dropped event data')
+    }
+  }, [startHour, onEventMove])
 
   // Check if we're viewing the current week (for current time indicator)
   const isCurrentWeek = useMemo(() => {
@@ -156,7 +223,17 @@ export function WeekGrid({
   const eventsByDay = useMemo(() => groupEventsByDay(events), [events])
 
   return (
-    <div className={cn('flex flex-col h-full', className)}>
+    <div className={cn('flex flex-col h-full relative', className)}>
+      {/* Loading overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-muted-foreground">Regenerating schedule...</span>
+          </div>
+        </div>
+      )}
+
       {/* Header row with day names and dates */}
       <div className="flex border-b border-border">
         {/* Empty cell for time column alignment */}
@@ -243,20 +320,43 @@ export function WeekGrid({
                   {/* Time slots (background grid) */}
                   {Array.from({ length: totalSlots }).map((_, slotIndex) => {
                     const isHourBoundary = slotIndex > 0 && slotIndex % slotsPerHour === 0
+                    const isDragTarget = dragOverSlot?.dayIndex === dayIndex && dragOverSlot?.slotIndex === slotIndex
 
                     return (
                       <div
                         key={`slot-${dayIndex}-${slotIndex}`}
+                        onDragOver={(e) => handleDragOver(e, dayIndex, slotIndex)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, dayIndex, slotIndex)}
                         className={cn(
-                          'border-b hover:bg-accent/5 transition-colors',
+                          'border-b transition-colors',
                           isHourBoundary
                             ? 'border-border/50'
-                            : 'border-border/20'
+                            : 'border-border/20',
+                          // Hover state when not dragging
+                          !draggingEvent && 'hover:bg-accent/5',
+                          // Drag target highlight
+                          isDragTarget && 'bg-primary/20 border-primary/50'
                         )}
                         style={{ height: `${SLOT_HEIGHT}px` }}
                       />
                     )
                   })}
+
+                  {/* Ghost preview for dragging event */}
+                  {draggingEvent && dragOverSlot?.dayIndex === dayIndex && (
+                    <div
+                      className="absolute left-1 right-1 rounded-md border-2 border-dashed border-primary/50 bg-primary/10 pointer-events-none z-30"
+                      style={{
+                        top: `${dragOverSlot.slotIndex * SLOT_HEIGHT}px`,
+                        height: `${calculateEventHeight(draggingEvent.slot.durationMinutes)}px`,
+                      }}
+                    >
+                      <span className="text-xs text-primary/70 p-1 truncate block">
+                        {draggingEvent.title}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Events layer (absolutely positioned) */}
                   <div className="absolute inset-0 pointer-events-none">
@@ -291,6 +391,8 @@ export function WeekGrid({
                                 setOpenEventId(event.id)
                                 onEventClick?.(event)
                               }}
+                              onDragStart={handleDragStart}
+                              onDragEnd={handleDragEnd}
                               className="h-full"
                             />
                           </EventPopover>

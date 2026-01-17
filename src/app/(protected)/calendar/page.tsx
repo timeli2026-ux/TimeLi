@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Calendar, CalendarX } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { WeekGrid } from '@/components/calendar/week-grid'
-import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
+import type { ScheduleEventWithFlexibility, TimeSlot } from '@/lib/scheduling/types'
 import {
   getWeekStart,
   formatWeekRange,
@@ -406,6 +407,62 @@ export default function CalendarPage() {
     console.log('Event clicked:', event.title)
   }, [])
 
+  // Handle event move (drag/drop)
+  const handleEventMove = useCallback(async (eventId: string, newSlot: TimeSlot) => {
+    // Find the event being moved
+    const eventToMove = events.find((e) => e.id === eventId)
+    if (!eventToMove) return
+
+    // Don't allow moving locked events
+    if (eventToMove.isLocked) {
+      toast.error('Cannot move locked events')
+      return
+    }
+
+    // Store original state for potential rollback
+    const originalEvents = [...events]
+
+    // Optimistic update
+    const updatedEvents = events.map((e) =>
+      e.id === eventId
+        ? { ...e, slot: newSlot }
+        : e
+    )
+    setEvents(updatedEvents)
+
+    // Format time for toast
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':')
+      const hour = parseInt(hours, 10)
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+      const period = hour < 12 ? 'AM' : 'PM'
+      return `${displayHour}:${minutes} ${period}`
+    }
+
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    toast.success(`Event moved to ${dayNames[newSlot.dayOfWeek]} at ${formatTime(newSlot.startTime)}`)
+
+    // Call API (for validation/logging, not persisted yet)
+    try {
+      const response = await fetch('/api/schedule/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, newSlot }),
+      })
+
+      if (!response.ok) {
+        // Revert on error
+        setEvents(originalEvents)
+        const error = await response.json()
+        toast.error(error.error || 'Failed to move event')
+      }
+    } catch {
+      // Revert on network error
+      setEvents(originalEvents)
+      toast.error('Network error - event not moved')
+    }
+  }, [events])
+
   return (
     <div className="flex flex-col h-full">
       {/* Header with navigation */}
@@ -461,6 +518,7 @@ export default function CalendarPage() {
             weekStart={weekStart}
             events={events}
             onEventClick={handleEventClick}
+            onEventMove={handleEventMove}
           />
         )}
       </div>

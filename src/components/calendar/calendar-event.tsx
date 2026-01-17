@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, type DragEvent } from 'react'
 import { Lock } from 'lucide-react'
 import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
 import { cn } from '@/lib/utils'
@@ -57,6 +58,8 @@ const LOCKED_EVENT_STYLES = 'bg-muted border-muted-foreground/30 text-muted-fore
 interface CalendarEventProps {
   event: ScheduleEventWithFlexibility
   onClick?: () => void
+  onDragStart?: (event: ScheduleEventWithFlexibility, e: DragEvent<HTMLDivElement>) => void
+  onDragEnd?: () => void
   className?: string
 }
 
@@ -67,9 +70,30 @@ interface CalendarEventProps {
  * - Locked events (fixed, meal, sleep, commute): Gray with lock icon
  * - Goal events: Colored by realm with flexibility indicator
  */
-export function CalendarEvent({ event, onClick, className }: CalendarEventProps) {
+export function CalendarEvent({ event, onClick, onDragStart, onDragEnd, className }: CalendarEventProps) {
+  const [isDragging, setIsDragging] = useState(false)
   const isLocked = event.isLocked || event.type !== 'goal'
   const isGoal = event.type === 'goal'
+  const canDrag = !isLocked
+
+  // Handle drag start
+  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
+    if (!canDrag) {
+      e.preventDefault()
+      return
+    }
+    setIsDragging(true)
+    // Store event data in dataTransfer
+    e.dataTransfer.setData('application/json', JSON.stringify(event))
+    e.dataTransfer.effectAllowed = 'move'
+    onDragStart?.(event, e)
+  }
+
+  // Handle drag end
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    onDragEnd?.()
+  }
 
   // Determine event colors
   const eventColors = isLocked
@@ -88,6 +112,7 @@ export function CalendarEvent({ event, onClick, className }: CalendarEventProps)
     <div
       role="button"
       tabIndex={0}
+      draggable={canDrag}
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -95,13 +120,17 @@ export function CalendarEvent({ event, onClick, className }: CalendarEventProps)
           onClick?.()
         }
       }}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       className={cn(
         // Base styles
         'absolute left-0.5 right-0.5 rounded-md border px-1.5 py-0.5',
         'flex flex-col overflow-hidden',
         'transition-all duration-150',
         // Cursor based on event type
-        isGoal ? 'cursor-grab hover:shadow-md' : 'cursor-default',
+        canDrag ? 'cursor-grab hover:shadow-md active:cursor-grabbing' : 'cursor-default',
+        // Dragging state
+        isDragging && 'opacity-50 shadow-lg scale-[1.02]',
         // Event colors
         eventColors,
         className
