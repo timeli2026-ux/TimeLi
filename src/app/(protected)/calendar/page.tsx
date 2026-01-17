@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Calendar, CalendarX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarX, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { WeekGrid } from '@/components/calendar/week-grid'
 import { CompletionModal, type CompletionStatus } from '@/components/calendar/completion-modal'
+import { RecalibrateDialog, type RecalibrateScope } from '@/components/calendar/recalibrate-dialog'
 import type { ScheduleEventWithFlexibility, TimeSlot } from '@/lib/scheduling/types'
 import {
   getWeekStart,
@@ -353,6 +354,10 @@ export default function CalendarPage() {
   // Completion modal state
   const [completionEvent, setCompletionEvent] = useState<ScheduleEventWithFlexibility | null>(null)
 
+  // Recalibrate dialog state
+  const [showRecalibrate, setShowRecalibrate] = useState(false)
+  const [isRecalibrating, setIsRecalibrating] = useState(false)
+
   // Calculate navigation bounds
   const canGoBack = useMemo(() => {
     // Cannot go before current week
@@ -505,6 +510,45 @@ export default function CalendarPage() {
     }
   }, [completionEvent])
 
+  // Handle recalibration
+  const handleRecalibrate = useCallback(async (scope: RecalibrateScope) => {
+    setIsRecalibrating(true)
+    setShowRecalibrate(false)
+
+    try {
+      const response = await fetch('/api/schedule/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope }),
+      })
+
+      if (response.status === 409) {
+        // Infeasibility - schedule cannot fit all goals
+        const data = await response.json()
+        toast.error(data.message || 'Schedule is infeasible - some goals cannot fit')
+        return
+      }
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to regenerate schedule')
+        return
+      }
+
+      const data = await response.json()
+
+      // Update events with the new schedule
+      if (data.schedule?.events) {
+        setEvents(data.schedule.events)
+        toast.success('Schedule regenerated')
+      }
+    } catch {
+      toast.error('Network error - schedule not regenerated')
+    } finally {
+      setIsRecalibrating(false)
+    }
+  }, [])
+
   return (
     <div className="flex flex-col h-full">
       {/* Header with navigation */}
@@ -517,6 +561,16 @@ export default function CalendarPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowRecalibrate(true)}
+            disabled={isRecalibrating}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRecalibrating ? 'animate-spin' : ''}`} />
+            Recalibrate
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -562,6 +616,7 @@ export default function CalendarPage() {
             onEventClick={handleEventClick}
             onEventMove={handleEventMove}
             onMarkComplete={handleMarkComplete}
+            isLoading={isRecalibrating}
           />
         )}
       </div>
@@ -577,6 +632,13 @@ export default function CalendarPage() {
           onComplete={handleCompletion}
         />
       )}
+
+      {/* Recalibrate Dialog */}
+      <RecalibrateDialog
+        open={showRecalibrate}
+        onOpenChange={setShowRecalibrate}
+        onConfirm={handleRecalibrate}
+      />
     </div>
   )
 }
