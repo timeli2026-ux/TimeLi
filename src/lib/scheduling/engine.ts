@@ -1,5 +1,5 @@
-// Backtracking CSP Scheduler with Habit Stacking
-// Phase 5: Scheduling Engine - Plan 01
+// Backtracking CSP Scheduler with Habit Stacking and Cognitive Science Scoring
+// Phase 5: Scheduling Engine - Plans 01 and 02
 // Implements constraint satisfaction with cognitive science principles
 
 import {
@@ -11,9 +11,11 @@ import {
   TimeSlot,
   UnscheduledGoal,
   SchedulerStats,
+  EnergyProfile,
   timeToMinutes,
   minutesToTime,
   generateEventId,
+  getEnergyProfileForChronotype,
   DAYS_IN_WEEK,
   DEFAULT_DAY_START_HOUR,
   DEFAULT_DAY_END_HOUR,
@@ -31,6 +33,16 @@ import {
   createSlotBefore,
 } from './constraints'
 
+import {
+  ScoringWeights,
+  ScoringContext,
+  SlotScore,
+  rankSlots,
+  scoreSlot,
+  getDefaultWeights,
+  calculatePlacementScore,
+} from './scoring'
+
 // =============================================================================
 // CONSTANTS
 // =============================================================================
@@ -38,11 +50,23 @@ import {
 const MAX_BACKTRACKS = 1000 // Prevent infinite search
 
 // =============================================================================
+// SCHEDULE GENERATION OPTIONS
+// =============================================================================
+
+/**
+ * Options for schedule generation
+ */
+export interface GenerateScheduleOptions {
+  customWeights?: Partial<ScoringWeights>
+  previousWeekSchedule?: WeekSchedule
+}
+
+// =============================================================================
 // MAIN SCHEDULER FUNCTION
 // =============================================================================
 
 /**
- * Generate a weekly schedule using backtracking CSP
+ * Generate a weekly schedule using backtracking CSP with cognitive science scoring
  *
  * Algorithm:
  * 1. Build blocked slots from preferences
@@ -50,10 +74,13 @@ const MAX_BACKTRACKS = 1000 // Prevent infinite search
  * 3. Schedule anchored goals FIRST (habit stacking)
  * 4. Sort remaining goals by MRV heuristic
  * 5. Apply deadline priority boost
- * 6. Use backtracking CSP solver for regular goals
+ * 6. Use backtracking CSP solver with scoring to find best placements
  * 7. Calculate stats and return
  */
-export function generateSchedule(input: SchedulerInput): SchedulerResult {
+export function generateSchedule(
+  input: SchedulerInput,
+  options?: GenerateScheduleOptions
+): SchedulerResult {
   // 1. Build blocked slots from preferences (with weekend sleep support)
   const blockedSlots = buildBlockedSlots(input)
 
@@ -84,17 +111,30 @@ export function generateSchedule(input: SchedulerInput): SchedulerResult {
   // 8. Add deadline-based priority boost
   const prioritizedGoals = applyDeadlinePriority(sortedGoals, input.weekStart)
 
-  // 9. Use backtracking CSP solver for regular goals
+  // 9. Build energy profile for scoring
+  const energyProfile = getEnergyProfileForChronotype(input.preferences.chronotype)
+
+  // 10. Build base scoring context (without goal - that's added per-goal)
+  const baseScoringContext = {
+    energyProfile,
+    previousWeekSchedule: options?.previousWeekSchedule || input.previousWeekSchedule,
+    allGoals: input.goals,
+    weekStart: input.weekStart,
+    customWeights: options?.customWeights,
+  }
+
+  // 11. Use backtracking CSP solver with scoring for regular goals
   const backtrackCount = { count: 0 }
   const { scheduledEvents, unscheduled: regularUnscheduled } = backtrackSolveWithPartial(
     prioritizedGoals,
     availableByDay,
     baseEvents,
     input.preferences.bufferMinutes,
-    backtrackCount
+    backtrackCount,
+    baseScoringContext
   )
 
-  // 10. Build final schedule
+  // 12. Build final schedule
   const allEvents = [...baseEvents, ...scheduledEvents]
   const schedule: WeekSchedule = {
     events: allEvents,
@@ -102,10 +142,10 @@ export function generateSchedule(input: SchedulerInput): SchedulerResult {
     generatedAt: new Date(),
   }
 
-  // 11. Calculate stats
+  // 13. Calculate stats
   const stats = calculateStats(schedule, availableByDay, backtrackCount.count)
 
-  // 12. Combine unscheduled goals
+  // 14. Combine unscheduled goals
   const unscheduledGoals = [...anchoredUnscheduled, ...regularUnscheduled]
 
   return {
@@ -280,18 +320,35 @@ function isUrgentDeadline(goal: GoalWithMetadata, weekStart: Date, weekEnd: Date
 }
 
 // =============================================================================
-// BACKTRACKING CSP SOLVER
+// BASE SCORING CONTEXT TYPE
+// =============================================================================
+
+/**
+ * Scoring context without goal/existingEvents (those are added dynamically)
+ */
+interface BaseScoringContext {
+  energyProfile: EnergyProfile
+  previousWeekSchedule?: WeekSchedule
+  allGoals: GoalWithMetadata[]
+  weekStart: Date
+  customWeights?: Partial<ScoringWeights>
+}
+
+// =============================================================================
+// BACKTRACKING CSP SOLVER WITH SCORING
 // =============================================================================
 
 /**
  * Backtracking solver that returns partial solution when complete solution not found
+ * Now uses cognitive science scoring to rank and select best placements
  */
 function backtrackSolveWithPartial(
   goals: GoalWithMetadata[],
   availableByDay: Map<number, TimeSlot[]>,
   existingEvents: ScheduleEvent[],
   bufferMinutes: number,
-  backtrackCount: { count: number }
+  backtrackCount: { count: number },
+  baseScoringContext: BaseScoringContext
 ): { scheduledEvents: ScheduleEvent[]; unscheduled: UnscheduledGoal[] } {
   const allScheduledEvents: ScheduleEvent[] = []
   const unscheduled: UnscheduledGoal[] = []
@@ -302,14 +359,26 @@ function backtrackSolveWithPartial(
     const sessionsNeeded = calculateSessionsNeeded(goal)
     const buffer = calculateRecoveryBuffer(goal, bufferMinutes)
 
-    // Try to schedule all sessions for this goal using backtracking
-    const result = backtrackScheduleGoal(
+    // Build full scoring context for this goal
+    const scoringContext: ScoringContext = {
+      goal,
+      existingEvents: currentEvents,
+      energyProfile: baseScoringContext.energyProfile,
+      previousWeekSchedule: baseScoringContext.previousWeekSchedule,
+      allGoals: baseScoringContext.allGoals,
+      weekStart: baseScoringContext.weekStart,
+    }
+
+    // Try to schedule all sessions for this goal using backtracking with scoring
+    const result = backtrackScheduleGoalWithScoring(
       goal,
       sessionsNeeded,
       availableByDay,
       currentEvents,
       buffer,
-      backtrackCount
+      backtrackCount,
+      scoringContext,
+      baseScoringContext.customWeights
     )
 
     if (result.events.length > 0) {
@@ -334,18 +403,27 @@ function backtrackSolveWithPartial(
 }
 
 /**
- * Backtracking solver for a single goal's sessions
- * Tries to distribute sessions across different days (spaced practice)
+ * Backtracking solver for a single goal's sessions with cognitive science scoring
+ * Uses scoring to rank slots and select best placements
  */
-function backtrackScheduleGoal(
+function backtrackScheduleGoalWithScoring(
   goal: GoalWithMetadata,
   sessionsNeeded: number,
   availableByDay: Map<number, TimeSlot[]>,
   existingEvents: ScheduleEvent[],
   bufferMinutes: number,
-  backtrackCount: { count: number }
-): { events: ScheduleEvent[] } {
+  backtrackCount: { count: number },
+  scoringContext: ScoringContext,
+  customWeights?: Partial<ScoringWeights>
+): { events: ScheduleEvent[]; slotScores: SlotScore[] } {
   const events: ScheduleEvent[] = []
+  const slotScores: SlotScore[] = []
+
+  // Get weights for this goal (with custom overrides if any)
+  const baseWeights = getDefaultWeights(goal)
+  const weights: ScoringWeights = customWeights
+    ? { ...baseWeights, ...customWeights }
+    : baseWeights
 
   // Try to spread sessions across different days for spaced practice
   const daysUsed = new Set<number>()
@@ -353,22 +431,30 @@ function backtrackScheduleGoal(
   for (let sessionIndex = 0; sessionIndex < sessionsNeeded; sessionIndex++) {
     if (backtrackCount.count >= MAX_BACKTRACKS) break
 
-    // Find best slot for this session
-    const slot = findBestSlot(
+    // Update scoring context with current events
+    const currentContext: ScoringContext = {
+      ...scoringContext,
+      existingEvents: [...existingEvents, ...events],
+    }
+
+    // Find best slot for this session using scoring
+    const result = findBestSlotWithScoring(
       goal,
       availableByDay,
       [...existingEvents, ...events],
       bufferMinutes,
       daysUsed,
-      backtrackCount
+      backtrackCount,
+      currentContext,
+      weights
     )
 
-    if (slot) {
+    if (result) {
       const event: ScheduleEvent = {
         id: generateEventId(),
         type: 'goal',
         title: goal.title,
-        slot,
+        slot: result.slotScore.slot,
         goalId: goal.id,
         realmId: goal.realmId,
         isLocked: false,
@@ -376,25 +462,28 @@ function backtrackScheduleGoal(
         isAnchoredSession: false,
       }
       events.push(event)
-      daysUsed.add(slot.dayOfWeek)
+      slotScores.push(result.slotScore)
+      daysUsed.add(result.slotScore.slot.dayOfWeek)
     }
   }
 
-  return { events }
+  return { events, slotScores }
 }
 
 /**
- * Find the best slot for a goal session
- * Prefers days not yet used (spaced practice)
+ * Find the best slot for a goal session using cognitive science scoring
+ * Ranks all valid slots by score and returns the highest-scoring one
  */
-function findBestSlot(
+function findBestSlotWithScoring(
   goal: GoalWithMetadata,
   availableByDay: Map<number, TimeSlot[]>,
   existingEvents: ScheduleEvent[],
   bufferMinutes: number,
   daysUsed: Set<number>,
-  backtrackCount: { count: number }
-): TimeSlot | null {
+  backtrackCount: { count: number },
+  scoringContext: ScoringContext,
+  weights: ScoringWeights
+): { slotScore: SlotScore } | null {
   const sessionDuration = goal.sessionStrategy.preferredDuration
 
   // First try days not yet used (for spaced practice)
@@ -406,9 +495,12 @@ function findBestSlot(
   // Try unused days first, then used days
   const daysToTry = [...unusedDays, ...usedDays]
 
+  // Collect all valid slots across priority days
+  let allValidSlots: TimeSlot[] = []
+
   for (const day of daysToTry) {
     backtrackCount.count++
-    if (backtrackCount.count >= MAX_BACKTRACKS) return null
+    if (backtrackCount.count >= MAX_BACKTRACKS) break
 
     const dayAvailable = availableByDay.get(day) || []
     const validSlots = findAllValidSlots(
@@ -419,14 +511,25 @@ function findBestSlot(
       day
     )
 
-    if (validSlots.length > 0) {
-      // Return first valid slot for this day
-      // (Could be enhanced to prefer energy-aligned slots in Plan 02)
-      return validSlots[0]
+    // For unused days, add all slots for scoring
+    // For used days, only add if we have no unused day slots
+    if (!daysUsed.has(day) || allValidSlots.length === 0) {
+      allValidSlots.push(...validSlots)
+    }
+
+    // Once we have slots from unused days, don't add from used days
+    if (allValidSlots.length > 0 && daysUsed.has(day)) {
+      break
     }
   }
 
-  return null
+  if (allValidSlots.length === 0) return null
+
+  // Rank all slots by cognitive science score
+  const rankedSlots = rankSlots(allValidSlots, scoringContext, weights)
+
+  // Return the highest-scoring slot
+  return { slotScore: rankedSlots[0] }
 }
 
 /**

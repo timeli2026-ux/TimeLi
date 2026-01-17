@@ -126,6 +126,7 @@ function daysBetween(date1: Date, date2: Date): number {
 
 /**
  * Find contiguous available time from a slot
+ * This measures how much uninterrupted time is available starting from this slot
  */
 function calculateContiguousAvailable(
   slot: TimeSlot,
@@ -134,29 +135,28 @@ function calculateContiguousAvailable(
   const slotStart = timeToMinutes(slot.startTime)
   const slotEnd = timeToMinutes(slot.endTime)
 
-  // Find events on the same day
+  // Find events on the same day that start after our slot starts
   const dayEvents = existingEvents
     .filter(e => e.slot.dayOfWeek === slot.dayOfWeek)
     .map(e => ({
       start: timeToMinutes(e.slot.startTime),
       end: timeToMinutes(e.slot.endTime)
     }))
+    .filter(e => e.start > slotStart) // Only events that start after this slot starts
     .sort((a, b) => a.start - b.start)
 
-  // Find the end of contiguous free time starting from this slot
+  // Find the first event that starts after our slot start
+  // This determines how much contiguous time we have
   let contiguousEnd = slotEnd
 
-  // Check if there's a following event that limits our contiguous time
   for (const event of dayEvents) {
-    if (event.start > slotEnd) {
-      // This event is after our slot - it limits how much contiguous time we have
-      contiguousEnd = event.start
-      break
-    }
+    // First event after slot start limits contiguous time
+    contiguousEnd = event.start
+    break
   }
 
   // If no event found after, use end of typical work day (23:00 = 1380)
-  if (contiguousEnd === slotEnd) {
+  if (dayEvents.length === 0) {
     contiguousEnd = 1380 // 23:00
   }
 
