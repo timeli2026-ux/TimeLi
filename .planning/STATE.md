@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 6 of 10 (Calendar UI)
-Plan: 0 of 3 in current phase
-Status: Ready to start
-Last activity: 2026-01-17 — Completed Phase 5 (Scheduling Engine)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-17 — Completed 06-01-PLAN.md
 
-Progress: ████████████████░░ 50%
+Progress: ████████████████░░░ 53%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: 5 min
-- Total execution time: 1.25 hours
+- Total execution time: 1.3 hours
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: ████████████████░░ 50%
 | 3 | 3/3 | 12 min | 4 min |
 | 4 | 3/3 | 15 min | 5 min |
 | 5 | 3/3 | 15 min | 5 min |
+| 6 | 1/3 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (5 min), 04-03 (7 min), 05-01 (5 min), 05-02 (5 min), 05-03 (5 min)
+- Last 5 plans: 04-03 (7 min), 05-01 (5 min), 05-02 (5 min), 05-03 (5 min), 06-01 (3 min)
 - Trend: Consistent execution speed
 
 ## Accumulated Context
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - (onboarding) Minimal onboarding layout without sidebar for focused experience
 - (onboarding) Step components use controlled input pattern with value/onChange props
 - (onboarding) Slider steps set to 15 min for durations, 5 min for buffer time
+- (calendar) 16px per 15-min slot (64px per hour) for compact but readable grid
+- (calendar) Week starts Monday (Mon-Sun), navigation limited to current week through +4 weeks
 
 ### Pending Todos
 
@@ -82,5 +85,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed Phase 5 (Scheduling Engine)
+Stopped at: Completed 06-01-PLAN.md (Week Grid Foundation)
 Resume file: None
