@@ -51,6 +51,10 @@ export interface Database {
           commute_morning_duration: number | null
           commute_evening_start: string | null
           commute_evening_duration: number | null
+          // Phase 5: Scheduling enhancements
+          chronotype: 'early_bird' | 'night_owl' | 'intermediate'
+          weekend_sleep_start: string | null
+          weekend_sleep_end: string | null
           created_at: string
           updated_at: string
         }
@@ -71,6 +75,10 @@ export interface Database {
           commute_morning_duration?: number | null
           commute_evening_start?: string | null
           commute_evening_duration?: number | null
+          // Phase 5: Scheduling enhancements
+          chronotype?: 'early_bird' | 'night_owl' | 'intermediate'
+          weekend_sleep_start?: string | null
+          weekend_sleep_end?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -91,6 +99,10 @@ export interface Database {
           commute_morning_duration?: number | null
           commute_evening_start?: string | null
           commute_evening_duration?: number | null
+          // Phase 5: Scheduling enhancements
+          chronotype?: 'early_bird' | 'night_owl' | 'intermediate'
+          weekend_sleep_start?: string | null
+          weekend_sleep_end?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -127,6 +139,102 @@ export interface Database {
           start_time?: string
           end_time?: string
           is_recurring?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      life_realms: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          icon: string | null
+          is_custom: boolean
+          display_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          icon?: string | null
+          is_custom?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          icon?: string | null
+          is_custom?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_goals: {
+        Row: {
+          id: string
+          user_id: string
+          realm_id: string
+          title: string
+          hours_per_week: number
+          is_active: boolean
+          // Phase 5: Scheduling enhancements
+          cognitive_load: 'high' | 'medium' | 'low'
+          requires_deep_work: boolean
+          deadline: string | null
+          deadline_type: 'hard' | 'soft' | 'none'
+          anchor_type: 'none' | 'after_event' | 'before_event'
+          anchor_event_id: string | null
+          minimum_session_minutes: number
+          preferred_session_minutes: number
+          intensity_level: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          realm_id: string
+          title: string
+          hours_per_week: number
+          is_active?: boolean
+          // Phase 5: Scheduling enhancements
+          cognitive_load?: 'high' | 'medium' | 'low'
+          requires_deep_work?: boolean
+          deadline?: string | null
+          deadline_type?: 'hard' | 'soft' | 'none'
+          anchor_type?: 'none' | 'after_event' | 'before_event'
+          anchor_event_id?: string | null
+          minimum_session_minutes?: number
+          preferred_session_minutes?: number
+          intensity_level?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          realm_id?: string
+          title?: string
+          hours_per_week?: number
+          is_active?: boolean
+          // Phase 5: Scheduling enhancements
+          cognitive_load?: 'high' | 'medium' | 'low'
+          requires_deep_work?: boolean
+          deadline?: string | null
+          deadline_type?: 'hard' | 'soft' | 'none'
+          anchor_type?: 'none' | 'after_event' | 'before_event'
+          anchor_event_id?: string | null
+          minimum_session_minutes?: number
+          preferred_session_minutes?: number
+          intensity_level?: number
           created_at?: string
           updated_at?: string
         }
