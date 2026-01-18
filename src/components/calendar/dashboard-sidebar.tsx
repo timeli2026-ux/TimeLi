@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 interface DashboardSidebarProps {
   events: ScheduleEventWithFlexibility[]
   stats?: SchedulerStats
+  completedEventIds?: Set<string>
   className?: string
 }
 
@@ -23,7 +24,7 @@ interface DashboardSidebarProps {
 // COMPONENT
 // =============================================================================
 
-export function DashboardSidebar({ events, stats, className }: DashboardSidebarProps) {
+export function DashboardSidebar({ events, stats, completedEventIds, className }: DashboardSidebarProps) {
   // Calculate summary stats from events
   const summaryStats = useMemo(() => {
     let goalMinutes = 0
@@ -95,7 +96,7 @@ export function DashboardSidebar({ events, stats, className }: DashboardSidebarP
       <Separator />
 
       {/* Goal Progress */}
-      <GoalProgress events={events} className="flex-1 overflow-auto" />
+      <GoalProgress events={events} completedEventIds={completedEventIds} className="flex-1 overflow-auto" />
     </div>
   )
 }

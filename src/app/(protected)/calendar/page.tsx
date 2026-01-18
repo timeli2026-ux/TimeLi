@@ -52,6 +52,9 @@ export default function CalendarPage() {
   // Schedule stats from API
   const [scheduleStats, setScheduleStats] = useState<SchedulerStats | undefined>(undefined)
 
+  // Track completed events locally for dashboard updates
+  const [completedEventIds, setCompletedEventIds] = useState<Set<string>>(new Set())
+
   // Completion modal state
   const [completionEvent, setCompletionEvent] = useState<ScheduleEventWithFlexibility | null>(null)
 
@@ -216,6 +219,11 @@ export default function CalendarPage() {
     }
     toast.success(`Marked as ${statusLabels[status]}`)
 
+    // Update local state to reflect completion (for dashboard updates)
+    if (status === 'completed' || status === 'partial') {
+      setCompletedEventIds(prev => new Set(prev).add(completionEvent.id))
+    }
+
     // Call API to persist the completion
     const weekStartStr = formatDateToString(weekStart)
     try {
@@ -238,7 +246,7 @@ export default function CalendarPage() {
     } catch {
       toast.error('Network error - completion not logged')
     }
-  }, [completionEvent])
+  }, [completionEvent, weekStart])
 
   // Generate initial schedule
   const handleGenerateSchedule = useCallback(async () => {
@@ -333,6 +341,7 @@ export default function CalendarPage() {
         <DashboardSidebar
           events={events}
           stats={scheduleStats}
+          completedEventIds={completedEventIds}
           className="hidden lg:flex flex-shrink-0"
         />
       )}
