@@ -8,6 +8,13 @@ const envSchema = z.object({
   // Supabase (private - server only)
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
+  // Anthropic API (optional - chat features disabled without it)
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+
+  // Self-hosted LLM (optional - chat features use offline mode without it)
+  LLM_BASE_URL: z.string().url().optional(),
+  LLM_MODEL: z.string().optional(),
+
   // Node environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
