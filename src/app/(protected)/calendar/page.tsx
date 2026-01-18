@@ -285,7 +285,7 @@ export default function CalendarPage() {
   }, [weekStart])
 
   // Handle recalibration
-  const handleRecalibrate = useCallback(async (scope: RecalibrateScope) => {
+  const handleRecalibrate = useCallback(async (scope: RecalibrateScope, feedback?: string) => {
     setIsRecalibrating(true)
     setShowRecalibrate(false)
 
@@ -294,7 +294,7 @@ export default function CalendarPage() {
       const response = await fetch('/api/schedule/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weekStart: weekStartStr, scope }),
+        body: JSON.stringify({ weekStart: weekStartStr, scope, feedback }),
       })
 
       if (response.status === 409) {

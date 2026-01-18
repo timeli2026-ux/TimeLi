@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
 // =============================================================================
@@ -21,7 +22,7 @@ export type RecalibrateScope = 'local' | 'global'
 interface RecalibrateDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (scope: RecalibrateScope) => void
+  onConfirm: (scope: RecalibrateScope, feedback?: string) => void
 }
 
 // =============================================================================
@@ -63,13 +64,15 @@ export function RecalibrateDialog({
   onConfirm,
 }: RecalibrateDialogProps) {
   const [selectedScope, setSelectedScope] = useState<RecalibrateScope>('local')
+  const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Handle form submission
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      await onConfirm(selectedScope)
+      // Pass feedback if provided, otherwise undefined
+      await onConfirm(selectedScope, feedback.trim() || undefined)
       onOpenChange(false)
     } finally {
       setIsSubmitting(false)
@@ -80,6 +83,7 @@ export function RecalibrateDialog({
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setSelectedScope('local')
+      setFeedback('')
     }
     onOpenChange(newOpen)
   }
@@ -139,6 +143,20 @@ export function RecalibrateDialog({
               )
             })}
           </div>
+        </div>
+
+        {/* Feedback textarea (optional) */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Feedback <span className="text-muted-foreground font-normal">(optional)</span>
+          </label>
+          <Textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder="What would you like to change? (e.g., 'Move gym to evenings', 'More time for studying')"
+            className="resize-none"
+            rows={3}
+          />
         </div>
 
         {/* Warning for global scope */}
