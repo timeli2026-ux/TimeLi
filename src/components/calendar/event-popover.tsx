@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, Clock, Calendar, HelpCircle, CheckCircle, ArrowRightLeft } from 'lucide-react'
+import { Lock, Clock, Calendar, HelpCircle, CheckCircle } from 'lucide-react'
 import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
 import { getDayName } from '@/lib/scheduling/types'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -134,11 +134,12 @@ export function EventPopover({ event, open, onOpenChange, onMarkComplete, childr
         )}
 
         {/* Actions Section */}
-        <div className="p-2 flex gap-2">
+        {/* Note: "Reschedule via chat" will be added in Phase 6.5 */}
+        <div className="p-2">
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 gap-1.5"
+            className="w-full gap-1.5"
             onClick={() => {
               onOpenChange(false) // Close popover
               onMarkComplete?.()
@@ -147,12 +148,6 @@ export function EventPopover({ event, open, onOpenChange, onMarkComplete, childr
             <CheckCircle className="h-3.5 w-3.5" />
             Mark Complete
           </Button>
-          {isGoal && (
-            <Button variant="outline" size="sm" className="flex-1 gap-1.5" disabled>
-              <ArrowRightLeft className="h-3.5 w-3.5" />
-              Reschedule
-            </Button>
-          )}
         </div>
       </PopoverContent>
     </Popover>
