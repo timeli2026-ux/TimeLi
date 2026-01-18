@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 6 of 10 (Calendar UI) + Phase 6.5 (Schedule Chat) inserted
-Plan: 5 of 6 in current phase (06-05 complete)
-Status: In progress
-Last activity: 2026-01-18 — Completed 06-05-PLAN.md (Dashboard Sidebar)
+Plan: 6 of 6 in current phase (06-06 complete)
+Status: Phase complete
+Last activity: 2026-01-18 — Completed 06-06-PLAN.md (Interactions & Polish)
 
-Progress: ████████████████████░ 62%
+Progress: █████████████████████░ 64%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 6 min
-- Total execution time: 2.0 hours
+- Total execution time: 2.1 hours
 
 **By Phase:**
 
@@ -32,11 +32,11 @@ Progress: ████████████████████░ 62%
 | 3 | 3/3 | 12 min | 4 min |
 | 4 | 3/3 | 15 min | 5 min |
 | 5 | 3/3 | 15 min | 5 min |
-| 6 | 5/6 | 50 min | 10 min |
+| 6 | 6/6 | 54 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-01 (3 min), 06-02 (5 min), 06-03 (15 min), 06-04 (20 min), 06-05 (15 min)
-- Trend: Phase 6 required revision and more extensive work due to discovered issues
+- Last 5 plans: 06-02 (5 min), 06-03 (15 min), 06-04 (20 min), 06-05 (15 min), 06-06 (4 min)
+- Trend: Phase 6 complete - revision extended phase but all issues resolved
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -93,10 +93,11 @@ Recent decisions affecting current work:
 - (database) Schedule persistence with generated_schedules table (JSONB events)
 - (database) Type assertions (supabase as any) until types regenerated after migration
 - (chat) Phase 6.5 inserted for LLM-powered schedule refinement
+- (calendar) Local state tracking for completion status (completedEventIds Set)
+- (calendar) Removed disabled Reschedule button - cleaner UX until Phase 6.5
 
 ### Pending Todos
 
-- Plan 06-06: Recalibrate with feedback prompt
 - Phase 6.5: Chat infrastructure and chatbox UI
 
 ### Blockers/Concerns
@@ -106,6 +107,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-18
-Stopped at: Completed 06-05-PLAN.md (Dashboard Sidebar)
+Stopped at: Completed 06-06-PLAN.md (Interactions & Polish) - Phase 6 complete
 Resume file: None
-Next: Plan 06-06 (Interactions & Polish) or Phase 6.5 (Schedule Chat)
+Next: Phase 6.5 (Schedule Chat)

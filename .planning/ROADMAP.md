@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Database & RLS** - Row-level security, input sanitization, and early security hardening
 - [x] **Phase 4: Onboarding Flow** - 8-step wizard for user setup
 - [x] **Phase 5: Scheduling Engine** - Deterministic constraint satisfaction algorithm
-- [ ] **Phase 6: Calendar UI** - Week view with dashboard and interactions (expanded to 6 plans)
+- [x] **Phase 6: Calendar UI** - Week view with dashboard and interactions (expanded to 6 plans)
 - [ ] **Phase 6.5: Schedule Chat** - LLM-powered schedule refinement via conversation (INSERTED)
 - [ ] **Phase 7: Goals & Preferences** - Goals management and preference system
 - [ ] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
@@ -116,7 +116,7 @@ Plans:
 - [x] 06-03: Drag/drop and completion logging (partially complete, superseded by revision)
 - [x] 06-04: Database & API Integration (schedule persistence, rationale bug fix)
 - [x] 06-05: Dashboard Sidebar (realm pie chart, goal progress)
-- [ ] 06-06: Interactions & Polish (recalibrate with feedback prompt)
+- [x] 06-06: Interactions & Polish (recalibrate with feedback prompt)
 
 **Revision Note (2026-01-17)**: User testing revealed critical issues:
 - Calendar used mock data instead of real API
@@ -201,7 +201,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
 | 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
 | 5. Scheduling Engine | 3/3 | Complete | 2026-01-17 |
-| 6. Calendar UI | 5/6 | In progress | - |
+| 6. Calendar UI | 6/6 | Complete | 2026-01-18 |
 | 6.5. Schedule Chat | 0/3 | Not started | - |
 | 7. Goals & Preferences | 0/3 | Not started | - |
 | 8. LLM Gateway | 0/4 | Not started | - |
