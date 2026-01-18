@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Calendar, CalendarX, RefreshCw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarX, RefreshCw, MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { WeekGrid } from '@/components/calendar/week-grid'
 import { CompletionModal, type CompletionStatus } from '@/components/calendar/completion-modal'
 import { RecalibrateDialog, type RecalibrateScope } from '@/components/calendar/recalibrate-dialog'
-import type { ScheduleEventWithFlexibility, TimeSlot } from '@/lib/scheduling/types'
+import { DashboardSidebar } from '@/components/calendar/dashboard-sidebar'
+import type { ScheduleEventWithFlexibility, TimeSlot, SchedulerStats } from '@/lib/scheduling/types'
 import {
   getWeekStart,
   formatWeekRange,
@@ -47,6 +48,9 @@ export default function CalendarPage() {
 
   // Error state
   const [error, setError] = useState<string | null>(null)
+
+  // Schedule stats from API
+  const [scheduleStats, setScheduleStats] = useState<SchedulerStats | undefined>(undefined)
 
   // Completion modal state
   const [completionEvent, setCompletionEvent] = useState<ScheduleEventWithFlexibility | null>(null)
@@ -115,9 +119,11 @@ export default function CalendarPage() {
         if (data.exists && data.schedule?.events) {
           setEvents(data.schedule.events)
           setScheduleExists(true)
+          setScheduleStats(data.schedule.stats)
         } else {
           setEvents([])
           setScheduleExists(false)
+          setScheduleStats(undefined)
         }
       } catch {
         setError('Network error - please try again')
@@ -268,6 +274,7 @@ export default function CalendarPage() {
       if (data.schedule?.events) {
         setEvents(data.schedule.events)
         setScheduleExists(true)
+        setScheduleStats(data.stats)
         toast.success('Schedule generated!')
       }
     } catch {
@@ -309,6 +316,7 @@ export default function CalendarPage() {
       if (data.schedule?.events) {
         setEvents(data.schedule.events)
         setScheduleExists(true)
+        setScheduleStats(data.stats)
         toast.success('Schedule regenerated')
       }
     } catch {
@@ -319,78 +327,121 @@ export default function CalendarPage() {
   }, [weekStart])
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header with navigation */}
-      <div className="flex items-center justify-between pb-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">
-            Week of {formatWeekRange(weekStart)}
-          </h1>
-        </div>
+    <div className="flex h-full">
+      {/* Left Sidebar: Dashboard */}
+      {scheduleExists && !isLoading && (
+        <DashboardSidebar
+          events={events}
+          stats={scheduleStats}
+          className="hidden lg:flex flex-shrink-0"
+        />
+      )}
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowRecalibrate(true)}
-            disabled={isRecalibrating}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRecalibrating ? 'animate-spin' : ''}`} />
-            Recalibrate
-          </Button>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header with navigation */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-muted-foreground" />
+            <h1 className="text-lg font-semibold">
+              Week of {formatWeekRange(weekStart)}
+            </h1>
+          </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToToday}
-            disabled={isCurrentWeek}
-          >
-            Today
-          </Button>
-
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={goToPreviousWeek}
-              disabled={!canGoBack}
-              aria-label="Previous week"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowRecalibrate(true)}
+              disabled={isRecalibrating || !scheduleExists}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRecalibrating ? 'animate-spin' : ''}`} />
+              Recalibrate
             </Button>
+
             <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={goToNextWeek}
-              disabled={!canGoForward}
-              aria-label="Next week"
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              disabled={isCurrentWeek}
             >
-              <ChevronRight className="h-4 w-4" />
+              Today
             </Button>
+
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={goToPreviousWeek}
+                disabled={!canGoBack}
+                aria-label="Previous week"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={goToNextWeek}
+                disabled={!canGoForward}
+                aria-label="Next week"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Calendar grid */}
+        <div className="flex-1 overflow-hidden">
+          {isLoading ? (
+            <CalendarSkeleton />
+          ) : error ? (
+            <ErrorState message={error} />
+          ) : !scheduleExists ? (
+            <EmptyState onGenerate={handleGenerateSchedule} isGenerating={isRecalibrating} />
+          ) : (
+            <WeekGrid
+              weekStart={weekStart}
+              events={events}
+              onEventClick={handleEventClick}
+              onEventMove={handleEventMove}
+              onMarkComplete={handleMarkComplete}
+              isLoading={isRecalibrating}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Calendar grid */}
-      <div className="flex-1 border rounded-lg overflow-hidden">
-        {isLoading ? (
-          <CalendarSkeleton />
-        ) : error ? (
-          <ErrorState message={error} />
-        ) : !scheduleExists ? (
-          <EmptyState onGenerate={handleGenerateSchedule} isGenerating={isRecalibrating} />
-        ) : (
-          <WeekGrid
-            weekStart={weekStart}
-            events={events}
-            onEventClick={handleEventClick}
-            onEventMove={handleEventMove}
-            onMarkComplete={handleMarkComplete}
-            isLoading={isRecalibrating}
-          />
-        )}
-      </div>
+      {/* Right Sidebar: Chatbox Placeholder */}
+      {scheduleExists && !isLoading && (
+        <div className="hidden xl:flex w-72 flex-col border-l bg-muted/30 p-4 flex-shrink-0">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare className="h-5 w-5 text-primary" />
+            <h2 className="font-semibold">Schedule Assistant</h2>
+          </div>
+
+          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground">
+            <MessageSquare className="h-12 w-12 mb-4 opacity-50" />
+            <p className="text-sm">Chat with your schedule assistant</p>
+            <p className="text-xs mt-2">Coming soon...</p>
+          </div>
+
+          {/* Chat input placeholder */}
+          <div className="mt-auto pt-4 border-t">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Ask about your schedule..."
+                className="flex-1 px-3 py-2 text-sm rounded-md border bg-background"
+                disabled
+              />
+              <Button size="sm" disabled>
+                Send
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Completion Modal */}
       {completionEvent && (
