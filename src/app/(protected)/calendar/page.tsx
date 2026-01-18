@@ -18,320 +18,11 @@ import {
 // Maximum weeks user can navigate into the future
 const MAX_FUTURE_WEEKS = 4
 
-// =============================================================================
-// MOCK DATA FOR TESTING
-// =============================================================================
-
 /**
- * Generate mock schedule data for testing the calendar display
- * This will be replaced with real data from the API in Plan 06-03
+ * Format a Date to YYYY-MM-DD string
  */
-function generateMockEvents(): ScheduleEventWithFlexibility[] {
-  return [
-    // Monday - Locked events
-    {
-      id: 'evt_sleep_mon',
-      type: 'sleep',
-      title: 'Sleep',
-      slot: {
-        dayOfWeek: 1, // Monday
-        startTime: '06:00',
-        endTime: '07:00',
-        durationMinutes: 60,
-      },
-      isLocked: true,
-      flexibility: {
-        level: 'low',
-        alternativeSlots: 0,
-        explanation: 'Fixed sleep schedule',
-        canReschedule: false,
-      },
-    },
-    {
-      id: 'evt_commute_mon',
-      type: 'commute',
-      title: 'Morning Commute',
-      slot: {
-        dayOfWeek: 1,
-        startTime: '08:00',
-        endTime: '08:45',
-        durationMinutes: 45,
-      },
-      isLocked: true,
-      flexibility: {
-        level: 'low',
-        alternativeSlots: 0,
-        explanation: 'Fixed commute time',
-        canReschedule: false,
-      },
-    },
-    {
-      id: 'evt_meeting_mon',
-      type: 'fixed',
-      title: 'Team Standup',
-      slot: {
-        dayOfWeek: 1,
-        startTime: '09:00',
-        endTime: '09:30',
-        durationMinutes: 30,
-      },
-      isLocked: true,
-      flexibility: {
-        level: 'low',
-        alternativeSlots: 0,
-        explanation: 'Recurring team meeting',
-        canReschedule: false,
-      },
-    },
-    // Monday - Goal events
-    {
-      id: 'evt_deepwork_mon',
-      type: 'goal',
-      title: 'Deep Work: Project Alpha',
-      slot: {
-        dayOfWeek: 1,
-        startTime: '10:00',
-        endTime: '11:30',
-        durationMinutes: 90,
-      },
-      goalId: 'goal_1',
-      realmId: 'career',
-      isLocked: false,
-      cognitiveLoad: 'high',
-      rationale: {
-        primary: 'Peak energy after morning routine',
-        secondary: 'Your chronotype shows high focus at this time',
-        factors: ['Energy peak', 'Clear calendar', 'No meetings nearby'],
-      },
-      flexibility: {
-        level: 'high',
-        alternativeSlots: 6,
-        explanation: 'Multiple slots available this week',
-        canReschedule: true,
-      },
-    },
-    {
-      id: 'evt_lunch_mon',
-      type: 'meal',
-      title: 'Lunch',
-      slot: {
-        dayOfWeek: 1,
-        startTime: '12:00',
-        endTime: '12:45',
-        durationMinutes: 45,
-      },
-      isLocked: true,
-      flexibility: {
-        level: 'low',
-        alternativeSlots: 0,
-        explanation: 'Fixed lunch time',
-        canReschedule: false,
-      },
-    },
-    {
-      id: 'evt_learning_mon',
-      type: 'goal',
-      title: 'Learn TypeScript',
-      slot: {
-        dayOfWeek: 1,
-        startTime: '14:00',
-        endTime: '15:00',
-        durationMinutes: 60,
-      },
-      goalId: 'goal_2',
-      realmId: 'learning',
-      isLocked: false,
-      cognitiveLoad: 'medium',
-      rationale: {
-        primary: 'Low-energy slot after lunch',
-        secondary: 'Reading and tutorials work well during afternoon dip',
-        factors: ['Post-lunch', 'Medium cognitive load'],
-      },
-      flexibility: {
-        level: 'medium',
-        alternativeSlots: 3,
-        explanation: 'A few alternative slots available',
-        canReschedule: true,
-      },
-    },
-    // Tuesday - Mix of events
-    {
-      id: 'evt_gym_tue',
-      type: 'goal',
-      title: 'Gym - Strength Training',
-      slot: {
-        dayOfWeek: 2,
-        startTime: '07:00',
-        endTime: '08:00',
-        durationMinutes: 60,
-      },
-      goalId: 'goal_3',
-      realmId: 'health',
-      isLocked: false,
-      cognitiveLoad: 'low',
-      rationale: {
-        primary: 'Morning exercise boosts energy',
-        secondary: 'Physical activity before desk work improves focus',
-        factors: ['Morning slot', 'Exercise-first habit'],
-      },
-      flexibility: {
-        level: 'low',
-        alternativeSlots: 1,
-        explanation: 'Limited gym availability',
-        canReschedule: true,
-      },
-    },
-    {
-      id: 'evt_meeting_tue',
-      type: 'fixed',
-      title: '1:1 with Manager',
-      slot: {
-        dayOfWeek: 2,
-        startTime: '10:00',
-        endTime: '10:30',
-        durationMinutes: 30,
-      },
-      isLocked: true,
-      flexibility: {
-        level: 'low',
-        alternativeSlots: 0,
-        explanation: 'Recurring 1:1 meeting',
-        canReschedule: false,
-      },
-    },
-    {
-      id: 'evt_creative_tue',
-      type: 'goal',
-      title: 'Creative Writing',
-      slot: {
-        dayOfWeek: 2,
-        startTime: '16:00',
-        endTime: '17:30',
-        durationMinutes: 90,
-      },
-      goalId: 'goal_4',
-      realmId: 'creativity',
-      isLocked: false,
-      cognitiveLoad: 'medium',
-      rationale: {
-        primary: 'Creative work in afternoon energy window',
-        secondary: 'Second energy peak after mid-afternoon',
-        factors: ['Energy recovery', 'Creative flow time'],
-      },
-      flexibility: {
-        level: 'high',
-        alternativeSlots: 4,
-        explanation: 'Flexible goal with multiple options',
-        canReschedule: true,
-      },
-    },
-    // Wednesday
-    {
-      id: 'evt_finance_wed',
-      type: 'goal',
-      title: 'Budget Review',
-      slot: {
-        dayOfWeek: 3,
-        startTime: '09:00',
-        endTime: '09:45',
-        durationMinutes: 45,
-      },
-      goalId: 'goal_5',
-      realmId: 'finance',
-      isLocked: false,
-      cognitiveLoad: 'medium',
-      rationale: {
-        primary: 'Fresh mind for numbers',
-        secondary: 'Financial tasks need focus but not creativity',
-        factors: ['Morning clarity', 'Analytical time'],
-      },
-      flexibility: {
-        level: 'medium',
-        alternativeSlots: 2,
-        explanation: 'Can move to similar morning slots',
-        canReschedule: true,
-      },
-    },
-    {
-      id: 'evt_meditation_wed',
-      type: 'goal',
-      title: 'Meditation',
-      slot: {
-        dayOfWeek: 3,
-        startTime: '12:30',
-        endTime: '13:00',
-        durationMinutes: 30,
-      },
-      goalId: 'goal_6',
-      realmId: 'spiritual',
-      isLocked: false,
-      cognitiveLoad: 'low',
-      rationale: {
-        primary: 'Mid-day reset before afternoon',
-        factors: ['Stress relief', 'Energy reset'],
-      },
-      flexibility: {
-        level: 'high',
-        alternativeSlots: 5,
-        explanation: 'Can meditate anytime',
-        canReschedule: true,
-      },
-    },
-    // Thursday
-    {
-      id: 'evt_personal_thu',
-      type: 'goal',
-      title: 'Personal Admin',
-      slot: {
-        dayOfWeek: 4,
-        startTime: '11:00',
-        endTime: '11:45',
-        durationMinutes: 45,
-      },
-      goalId: 'goal_7',
-      realmId: 'personal',
-      isLocked: false,
-      cognitiveLoad: 'low',
-      rationale: {
-        primary: 'Light tasks before lunch',
-        secondary: 'Administrative work fits low-energy slots',
-        factors: ['Pre-lunch slot', 'Low mental load'],
-      },
-      flexibility: {
-        level: 'high',
-        alternativeSlots: 8,
-        explanation: 'Very flexible goal',
-        canReschedule: true,
-      },
-    },
-    // Friday
-    {
-      id: 'evt_relationships_fri',
-      type: 'goal',
-      title: 'Call Mom',
-      slot: {
-        dayOfWeek: 5,
-        startTime: '17:00',
-        endTime: '17:30',
-        durationMinutes: 30,
-      },
-      goalId: 'goal_8',
-      realmId: 'relationships',
-      isLocked: false,
-      cognitiveLoad: 'low',
-      rationale: {
-        primary: 'End of week connection time',
-        secondary: 'Winding down for the weekend',
-        factors: ['Friday evening', 'Social time'],
-      },
-      flexibility: {
-        level: 'medium',
-        alternativeSlots: 2,
-        explanation: 'Depends on availability',
-        canReschedule: true,
-      },
-    },
-  ]
+function formatDateToString(date: Date): string {
+  return date.toISOString().split('T')[0]
 }
 
 // =============================================================================
@@ -345,11 +36,17 @@ export default function CalendarPage() {
   // State for the currently displayed week
   const [weekStart, setWeekStart] = useState(() => currentWeekStart)
 
-  // Loading state placeholder for future schedule fetching
-  const [isLoading, setIsLoading] = useState(false)
+  // Loading state for schedule fetching
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Mock events - will be replaced with API data
+  // Schedule events from API
   const [events, setEvents] = useState<ScheduleEventWithFlexibility[]>([])
+
+  // Whether a schedule exists for the current week
+  const [scheduleExists, setScheduleExists] = useState(false)
+
+  // Error state
+  const [error, setError] = useState<string | null>(null)
 
   // Completion modal state
   const [completionEvent, setCompletionEvent] = useState<ScheduleEventWithFlexibility | null>(null)
@@ -391,25 +88,48 @@ export default function CalendarPage() {
     setWeekStart(currentWeekStart)
   }, [currentWeekStart])
 
-  // Load mock events on mount and week change
+  // Load schedule from API on mount and week change
   useEffect(() => {
-    console.log('Week changed to:', weekStart.toISOString())
-    setIsLoading(true)
+    const loadSchedule = async () => {
+      setIsLoading(true)
+      setError(null)
 
-    // Simulate loading with mock data
-    const timer = setTimeout(() => {
-      // Only show events for current week (mock data uses current week days)
-      if (isSameDay(weekStart, currentWeekStart)) {
-        setEvents(generateMockEvents())
-      } else {
-        // Empty schedule for other weeks (would be fetched from API)
+      const weekStartStr = formatDateToString(weekStart)
+
+      try {
+        const response = await fetch(`/api/schedule/${weekStartStr}`)
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            setError('Please log in to view your schedule')
+          } else {
+            setError('Failed to load schedule')
+          }
+          setEvents([])
+          setScheduleExists(false)
+          return
+        }
+
+        const data = await response.json()
+
+        if (data.exists && data.schedule?.events) {
+          setEvents(data.schedule.events)
+          setScheduleExists(true)
+        } else {
+          setEvents([])
+          setScheduleExists(false)
+        }
+      } catch {
+        setError('Network error - please try again')
         setEvents([])
+        setScheduleExists(false)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
-    }, 200)
+    }
 
-    return () => clearTimeout(timer)
-  }, [weekStart, currentWeekStart])
+    loadSchedule()
+  }, [weekStart])
 
   // Handle event click
   const handleEventClick = useCallback((event: ScheduleEventWithFlexibility) => {
@@ -451,12 +171,13 @@ export default function CalendarPage() {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     toast.success(`Event moved to ${dayNames[newSlot.dayOfWeek]} at ${formatTime(newSlot.startTime)}`)
 
-    // Call API (for validation/logging, not persisted yet)
+    // Call API to persist the change
+    const weekStartStr = formatDateToString(weekStart)
     try {
       const response = await fetch('/api/schedule/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId, newSlot }),
+        body: JSON.stringify({ eventId, newSlot, weekStart: weekStartStr }),
       })
 
       if (!response.ok) {
@@ -489,7 +210,8 @@ export default function CalendarPage() {
     }
     toast.success(`Marked as ${statusLabels[status]}`)
 
-    // Call API (for logging, not persisted yet)
+    // Call API to persist the completion
+    const weekStartStr = formatDateToString(weekStart)
     try {
       const response = await fetch('/api/schedule/complete', {
         method: 'POST',
@@ -498,6 +220,8 @@ export default function CalendarPage() {
           eventId: completionEvent.id,
           status,
           notes,
+          weekStart: weekStartStr,
+          goalId: completionEvent.goalId,
         }),
       })
 
@@ -510,16 +234,60 @@ export default function CalendarPage() {
     }
   }, [completionEvent])
 
+  // Generate initial schedule
+  const handleGenerateSchedule = useCallback(async () => {
+    setIsRecalibrating(true)
+    setError(null)
+
+    const weekStartStr = formatDateToString(weekStart)
+    try {
+      const response = await fetch('/api/schedule/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weekStart: weekStartStr }),
+      })
+
+      if (response.status === 409) {
+        const data = await response.json()
+        toast.error(data.message || 'Schedule is infeasible - some goals cannot fit')
+        return
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (response.status === 400 && errorData.error?.includes('onboarding')) {
+          setError('Complete onboarding first to generate your schedule')
+        } else {
+          toast.error(errorData.error || 'Failed to generate schedule')
+        }
+        return
+      }
+
+      const data = await response.json()
+
+      if (data.schedule?.events) {
+        setEvents(data.schedule.events)
+        setScheduleExists(true)
+        toast.success('Schedule generated!')
+      }
+    } catch {
+      toast.error('Network error - please try again')
+    } finally {
+      setIsRecalibrating(false)
+    }
+  }, [weekStart])
+
   // Handle recalibration
   const handleRecalibrate = useCallback(async (scope: RecalibrateScope) => {
     setIsRecalibrating(true)
     setShowRecalibrate(false)
 
+    const weekStartStr = formatDateToString(weekStart)
     try {
       const response = await fetch('/api/schedule/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scope }),
+        body: JSON.stringify({ weekStart: weekStartStr, scope }),
       })
 
       if (response.status === 409) {
@@ -540,6 +308,7 @@ export default function CalendarPage() {
       // Update events with the new schedule
       if (data.schedule?.events) {
         setEvents(data.schedule.events)
+        setScheduleExists(true)
         toast.success('Schedule regenerated')
       }
     } catch {
@@ -547,7 +316,7 @@ export default function CalendarPage() {
     } finally {
       setIsRecalibrating(false)
     }
-  }, [])
+  }, [weekStart])
 
   return (
     <div className="flex flex-col h-full">
@@ -607,8 +376,10 @@ export default function CalendarPage() {
       <div className="flex-1 border rounded-lg overflow-hidden">
         {isLoading ? (
           <CalendarSkeleton />
-        ) : events.length === 0 && !isCurrentWeek ? (
-          <EmptyState />
+        ) : error ? (
+          <ErrorState message={error} />
+        ) : !scheduleExists ? (
+          <EmptyState onGenerate={handleGenerateSchedule} isGenerating={isRecalibrating} />
         ) : (
           <WeekGrid
             weekStart={weekStart}
@@ -696,21 +467,56 @@ function CalendarSkeleton() {
 }
 
 // =============================================================================
+// ERROR STATE
+// =============================================================================
+
+/**
+ * Error state when schedule fails to load
+ */
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-center p-8">
+      <CalendarX className="h-12 w-12 text-destructive mb-4" />
+      <h2 className="text-lg font-medium mb-2">Unable to load schedule</h2>
+      <p className="text-sm text-muted-foreground max-w-sm">{message}</p>
+    </div>
+  )
+}
+
+// =============================================================================
 // EMPTY STATE
 // =============================================================================
 
 /**
- * Empty state when no events are scheduled
+ * Empty state when no schedule exists - with generate button
  */
-function EmptyState() {
+function EmptyState({
+  onGenerate,
+  isGenerating,
+}: {
+  onGenerate: () => void
+  isGenerating: boolean
+}) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center p-8">
-      <CalendarX className="h-12 w-12 text-muted-foreground mb-4" />
-      <h2 className="text-lg font-medium mb-2">No events scheduled</h2>
-      <p className="text-sm text-muted-foreground max-w-sm">
-        Events for this week haven&apos;t been generated yet. Go to the dashboard to
-        generate your schedule.
+      <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
+      <h2 className="text-lg font-medium mb-2">No schedule yet</h2>
+      <p className="text-sm text-muted-foreground max-w-sm mb-6">
+        Generate a schedule based on your goals and preferences.
       </p>
+      <Button onClick={onGenerate} disabled={isGenerating}>
+        {isGenerating ? (
+          <>
+            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            Generating...
+          </>
+        ) : (
+          <>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Generate Schedule
+          </>
+        )}
+      </Button>
     </div>
   )
 }

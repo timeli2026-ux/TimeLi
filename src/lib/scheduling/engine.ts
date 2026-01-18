@@ -43,6 +43,8 @@ import {
   calculatePlacementScore,
 } from './scoring'
 
+import { generateRationale, getSimpleRationale } from './rationale'
+
 // =============================================================================
 // CONSTANTS
 // =============================================================================
@@ -241,6 +243,12 @@ function scheduleAnchoredGoals(
           isLocked: false,
           cognitiveLoad: goal.cognitiveLoad,
           isAnchoredSession: true,
+          // Anchored events get a simple rationale about habit stacking
+          rationale: {
+            primary: `Right after your ${anchor.title} — habit stacking`,
+            secondary: 'Anchoring to fixed events builds habits 40% faster.',
+            factors: ['Habit stacking', 'Consistent trigger'],
+          },
         }
         events.push(event)
         allEvents.push(event)
@@ -450,6 +458,7 @@ function backtrackScheduleGoalWithScoring(
     )
 
     if (result) {
+      // Create event first
       const event: ScheduleEvent = {
         id: generateEventId(),
         type: 'goal',
@@ -461,6 +470,10 @@ function backtrackScheduleGoalWithScoring(
         cognitiveLoad: goal.cognitiveLoad,
         isAnchoredSession: false,
       }
+
+      // Generate and attach rationale based on scoring factors
+      event.rationale = generateRationale(event, result.slotScore, currentContext)
+
       events.push(event)
       slotScores.push(result.slotScore)
       daysUsed.add(result.slotScore.slot.dayOfWeek)

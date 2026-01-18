@@ -13,6 +13,7 @@ import type { TimeSlot } from '@/lib/scheduling/types'
 interface UpdateScheduleRequest {
   eventId: string
   newSlot: TimeSlot
+  weekStart: string // YYYY-MM-DD format - required for persistence
 }
 
 interface UpdateScheduleResponse {
@@ -52,12 +53,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<UpdateSch
       )
     }
 
-    const { eventId, newSlot } = body
+    const { eventId, newSlot, weekStart } = body
 
     // 3. Validate required fields
-    if (!eventId || !newSlot) {
+    if (!eventId || !newSlot || !weekStart) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: eventId and newSlot' },
+        { success: false, error: 'Missing required fields: eventId, newSlot, and weekStart' },
         { status: 400 }
       )
     }
@@ -77,17 +78,65 @@ export async function POST(request: NextRequest): Promise<NextResponse<UpdateSch
       )
     }
 
-    // 5. For now, we're managing schedule in client-side state
-    // Database persistence will be added in a future phase
-    // This endpoint validates the request and returns success
-    // In production, we would:
-    // - Check if user owns the event
-    // - Verify no conflicts with locked events
-    // - Update the database
+    // 5. Load current schedule from database
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: schedule, error: loadError } = await (supabase as any)
+      .from('generated_schedules')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('week_start', weekStart)
+      .single() as { data: { id: string; events: unknown } | null; error: unknown }
 
-    console.log(`[Schedule Update] User ${user.id} moving event ${eventId} to:`, newSlot)
+    if (loadError || !schedule) {
+      return NextResponse.json(
+        { success: false, error: 'Schedule not found for this week' },
+        { status: 404 }
+      )
+    }
 
-    // 6. Return success with updated event
+    // 6. Find and update the event
+    const events = schedule.events as Array<{ id: string; slot: TimeSlot; isLocked?: boolean }>
+    const eventIndex = events.findIndex(e => e.id === eventId)
+
+    if (eventIndex === -1) {
+      return NextResponse.json(
+        { success: false, error: 'Event not found in schedule' },
+        { status: 404 }
+      )
+    }
+
+    // 7. Check if event is locked
+    if (events[eventIndex].isLocked) {
+      return NextResponse.json(
+        { success: false, error: 'Cannot move locked events' },
+        { status: 400 }
+      )
+    }
+
+    // 8. Update the event slot
+    events[eventIndex].slot = newSlot
+
+    // 9. Save back to database
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: saveError } = await (supabase as any)
+      .from('generated_schedules')
+      .update({
+        events,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', schedule.id)
+
+    if (saveError) {
+      console.error('Failed to save schedule:', saveError)
+      return NextResponse.json(
+        { success: false, error: 'Failed to save schedule update' },
+        { status: 500 }
+      )
+    }
+
+    console.log(`[Schedule Update] User ${user.id} moved event ${eventId} to:`, newSlot)
+
+    // 10. Return success with updated event
     return NextResponse.json({
       success: true,
       updatedEvent: {

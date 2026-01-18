@@ -21,6 +21,9 @@ import {
 // =============================================================================
 
 interface GenerateScheduleRequest {
+  weekStart?: string // YYYY-MM-DD format, defaults to current week's Monday
+  scope?: 'local' | 'global' // local = this week only, global = regenerate all
+  feedback?: string // Optional user feedback for regeneration
   previousWeekSchedule?: WeekSchedule
   customWeights?: Partial<{
     ultradianAlignment: number
@@ -40,16 +43,37 @@ interface GenerateScheduleRequest {
 // =============================================================================
 
 /**
- * Get the next Monday date
+ * Get the current week's Monday date
  */
-function getNextMonday(): Date {
+function getCurrentWeekMonday(): Date {
   const now = new Date()
   const dayOfWeek = now.getDay()
-  const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek
+  // Calculate days since Monday (Sunday = 0, so Sunday means go back 6 days)
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
   const monday = new Date(now)
-  monday.setDate(now.getDate() + daysUntilMonday)
+  monday.setDate(now.getDate() - daysSinceMonday)
   monday.setHours(0, 0, 0, 0)
   return monday
+}
+
+/**
+ * Parse a weekStart string (YYYY-MM-DD) to a Date, or use current week's Monday
+ */
+function parseWeekStart(weekStartStr?: string): Date {
+  if (weekStartStr && /^\d{4}-\d{2}-\d{2}$/.test(weekStartStr)) {
+    const date = new Date(weekStartStr + 'T00:00:00')
+    if (!isNaN(date.getTime())) {
+      return date
+    }
+  }
+  return getCurrentWeekMonday()
+}
+
+/**
+ * Format a Date as YYYY-MM-DD string
+ */
+function formatDateToString(date: Date): string {
+  return date.toISOString().split('T')[0]
 }
 
 /**
@@ -136,14 +160,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Parse request body (optional: previousWeekSchedule, customWeights)
+    // 2. Parse request body
     let body: GenerateScheduleRequest = {}
     try {
       body = await request.json()
     } catch {
       // Empty body is valid
     }
-    const { previousWeekSchedule, customWeights } = body
+    const { weekStart: weekStartStr, scope, feedback, previousWeekSchedule, customWeights } = body
 
     // 3. Load user data from Supabase
     const [preferencesResult, commitmentsResult, goalsResult] = await Promise.all([
@@ -168,13 +192,41 @@ export async function POST(request: NextRequest) {
     const goals = transformGoals((goalsResult.data || []) as Record<string, unknown>[])
 
     // 5. Build scheduler input
-    const weekStart = getNextMonday()
+    const weekStart = parseWeekStart(weekStartStr)
+    const weekStartFormatted = formatDateToString(weekStart)
+
+    // Load previous week's schedule for stability scoring if not provided
+    let prevSchedule = previousWeekSchedule
+    if (!prevSchedule) {
+      const prevWeekStart = new Date(weekStart)
+      prevWeekStart.setDate(prevWeekStart.getDate() - 7)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: prevData } = await (supabase as any)
+        .from('generated_schedules')
+        .select('events')
+        .eq('user_id', user.id)
+        .eq('week_start', formatDateToString(prevWeekStart))
+        .single() as { data: { events: unknown } | null }
+      if (prevData?.events) {
+        prevSchedule = {
+          events: prevData.events as [],
+          weekStart: prevWeekStart,
+          generatedAt: new Date(),
+        }
+      }
+    }
+
     const schedulerInput: SchedulerInput = {
       preferences,
       commitments,
       goals,
       weekStart,
-      previousWeekSchedule
+      previousWeekSchedule: prevSchedule
+    }
+
+    // Log feedback if provided (will be used for LLM integration later)
+    if (feedback) {
+      console.log('Regeneration feedback:', feedback)
     }
 
     // 6. Check for infeasibility FIRST
@@ -195,11 +247,34 @@ export async function POST(request: NextRequest) {
     // 8. Add flexibility classification
     const scheduleWithFlexibility = addFlexibilityToSchedule(result.schedule, schedulerInput)
 
-    // 9. Return success
+    // 9. Save schedule to database (upsert - replace if exists)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: saveError } = await (supabase as any)
+      .from('generated_schedules')
+      .upsert({
+        user_id: user.id,
+        week_start: weekStartFormatted,
+        events: scheduleWithFlexibility.events,
+        stats: result.stats,
+        unscheduled_goals: result.unscheduledGoals,
+        generated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,week_start',
+      })
+
+    if (saveError) {
+      console.error('Failed to save schedule:', saveError)
+      // Continue anyway - schedule generation succeeded
+    }
+
+    // 10. Return success
     return NextResponse.json({
       schedule: scheduleWithFlexibility,
       stats: result.stats,
-      unscheduledGoals: result.unscheduledGoals
+      unscheduledGoals: result.unscheduledGoals,
+      weekStart: weekStartFormatted,
+      saved: !saveError,
     })
 
   } catch (error) {

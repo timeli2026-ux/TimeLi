@@ -15,6 +15,10 @@ interface CompleteScheduleRequest {
   eventId: string
   status: CompletionStatus
   notes?: string
+  weekStart?: string // YYYY-MM-DD format
+  goalId?: string
+  scheduledDate?: string // YYYY-MM-DD format
+  scheduledStartTime?: string // HH:mm format
 }
 
 interface CompleteScheduleResponse {
@@ -50,7 +54,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CompleteS
       )
     }
 
-    const { eventId, status, notes } = body
+    const { eventId, status, notes, weekStart, goalId, scheduledDate, scheduledStartTime } = body
 
     // 3. Validate required fields
     if (!eventId || !status) {
@@ -68,18 +72,43 @@ export async function POST(request: NextRequest): Promise<NextResponse<CompleteS
       )
     }
 
-    // 5. For now, log to console. Database persistence will be added in a future phase.
-    // In production, we would:
-    // - Create a schedule_completions table
-    // - Store eventId, userId, status, notes, completedAt
-    // - Potentially update goal progress metrics
-
-    console.log(`[Schedule Complete] User ${user.id} marked event ${eventId} as ${status}`)
-    if (notes) {
-      console.log(`[Schedule Complete] Notes: ${notes}`)
+    // 5. Find the schedule for this week (if weekStart provided)
+    let scheduleId: string | null = null
+    if (weekStart) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: schedule } = await (supabase as any)
+        .from('generated_schedules')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('week_start', weekStart)
+        .single() as { data: { id: string } | null }
+      scheduleId = schedule?.id || null
     }
 
-    // 6. Return success
+    // 6. Save completion to database
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: insertError } = await (supabase as any)
+      .from('schedule_completions')
+      .insert({
+        user_id: user.id,
+        schedule_id: scheduleId,
+        event_id: eventId,
+        goal_id: goalId || null,
+        status,
+        notes: notes || null,
+        scheduled_date: scheduledDate || null,
+        scheduled_start_time: scheduledStartTime || null,
+        completed_at: new Date().toISOString(),
+      })
+
+    if (insertError) {
+      console.error('Failed to save completion:', insertError)
+      // Still return success - logging failure shouldn't block the user
+    }
+
+    console.log(`[Schedule Complete] User ${user.id} marked event ${eventId} as ${status}`)
+
+    // 7. Return success
     return NextResponse.json({ success: true })
 
   } catch (error) {

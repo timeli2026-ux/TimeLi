@@ -49,7 +49,16 @@ const FLEXIBILITY_DOT_COLORS: Record<string, string> = {
 // LOCKED EVENT STYLES
 // =============================================================================
 
+// Default gray for truly locked events (sleep, etc.)
 const LOCKED_EVENT_STYLES = 'bg-muted border-muted-foreground/30 text-muted-foreground'
+
+// Event type to realm mapping for fixed events
+// This allows meals, commute, etc. to contribute to life realms visually
+const EVENT_TYPE_REALM_MAP: Record<string, string> = {
+  meal: 'health',
+  commute: 'personal',
+  fixed: 'career', // Default for work-related fixed events
+}
 
 // =============================================================================
 // COMPONENT
@@ -96,9 +105,30 @@ export function CalendarEvent({ event, onClick, onDragStart, onDragEnd, classNam
   }
 
   // Determine event colors
-  const eventColors = isLocked
-    ? LOCKED_EVENT_STYLES
-    : getRealmColor(event.realmId)
+  // Priority: explicit realmId > event type mapping > locked gray
+  const getEventColors = (): string => {
+    // If event has a realm, always use that color (even for locked events)
+    if (event.realmId) {
+      return getRealmColor(event.realmId)
+    }
+
+    // For locked events, check if type has a default realm mapping
+    if (isLocked && event.type) {
+      const mappedRealm = EVENT_TYPE_REALM_MAP[event.type]
+      if (mappedRealm) {
+        return getRealmColor(mappedRealm)
+      }
+    }
+
+    // Goals without realm get default color
+    if (isGoal) {
+      return getRealmColor(undefined)
+    }
+
+    // Everything else (sleep, etc.) is gray
+    return LOCKED_EVENT_STYLES
+  }
+  const eventColors = getEventColors()
 
   // Get flexibility dot color for goal events
   const flexibilityDotColor = isGoal && event.flexibility
