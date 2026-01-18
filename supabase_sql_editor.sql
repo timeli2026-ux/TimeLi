@@ -158,7 +158,7 @@ CREATE POLICY "Users can update own completions"
   ON public.schedule_completions FOR UPDATE
   USING ((SELECT auth.uid()) = user_id)
   WITH CHECK ((SELECT auth.uid()) = user_id);
-
+1
 CREATE POLICY "Users can delete own completions"
   ON public.schedule_completions FOR DELETE
   USING ((SELECT auth.uid()) = user_id);

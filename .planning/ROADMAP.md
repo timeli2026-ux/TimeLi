@@ -21,7 +21,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Database & RLS** - Row-level security, input sanitization, and early security hardening
 - [x] **Phase 4: Onboarding Flow** - 8-step wizard for user setup
 - [x] **Phase 5: Scheduling Engine** - Deterministic constraint satisfaction algorithm
-- [ ] **Phase 6: Calendar UI** - Week view with interactions
+- [ ] **Phase 6: Calendar UI** - Week view with dashboard and interactions (expanded to 6 plans)
+- [ ] **Phase 6.5: Schedule Chat** - LLM-powered schedule refinement via conversation (INSERTED)
 - [ ] **Phase 7: Goals & Preferences** - Goals management and preference system
 - [ ] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
 - [ ] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
@@ -103,16 +104,37 @@ Plans:
 - [x] 05-03: Infeasibility handling and flexibility classification
 
 ### Phase 6: Calendar UI
-**Goal**: Interactive week view with drag/drop and event management
+**Goal**: Interactive week view with dashboard, drag/drop, and event management
 **Depends on**: Phase 5
 **Research**: Unlikely (standard calendar UI patterns)
 **Requirements**: CAL-01, CAL-02, CAL-03, CAL-04, CAL-05, CAL-06, CAL-07, CAL-08
-**Plans**: TBD
+**Plans**: Expanded from 3 to 6 after revision (see CALENDAR_REVISION.md)
 
 Plans:
 - [x] 06-01: Week view grid (7 columns, 15-min slots)
 - [x] 06-02: Event display (locked vs AI-generated styling)
-- [ ] 06-03: Drag/drop and completion logging
+- [x] 06-03: Drag/drop and completion logging (partially complete, superseded by revision)
+- [x] 06-04: Database & API Integration (schedule persistence, rationale bug fix)
+- [x] 06-05: Dashboard Sidebar (realm pie chart, goal progress)
+- [ ] 06-06: Interactions & Polish (recalibrate with feedback prompt)
+
+**Revision Note (2026-01-17)**: User testing revealed critical issues:
+- Calendar used mock data instead of real API
+- No schedule persistence
+- Missing dashboard and chatbox
+- Scheduler bug (rationale not attached)
+Created CALENDAR_REVISION.md with expanded plan structure.
+
+### Phase 6.5: Schedule Chat (INSERTED)
+**Goal**: LLM-powered schedule refinement via conversation
+**Depends on**: Phase 6
+**Research**: Likely (Claude API patterns, prompt engineering)
+**Requirements**: New - schedule modification via natural language
+
+Plans:
+- [ ] 6.5-01: Chat Infrastructure (Claude API setup, conversation storage)
+- [ ] 6.5-02: Chatbox UI (message display, input, typing indicator)
+- [ ] 6.5-03: Schedule Modification (parse requests, apply changes, feedback loop)
 
 ### Phase 7: Goals & Preferences
 **Goal**: Goals CRUD and comprehensive preference editing
@@ -179,7 +201,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
 | 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
 | 5. Scheduling Engine | 3/3 | Complete | 2026-01-17 |
-| 6. Calendar UI | 2/3 | In progress | - |
+| 6. Calendar UI | 5/6 | In progress | - |
+| 6.5. Schedule Chat | 0/3 | Not started | - |
 | 7. Goals & Preferences | 0/3 | Not started | - |
 | 8. LLM Gateway | 0/4 | Not started | - |
 | 9. Settings & Billing | 0/3 | Not started | - |

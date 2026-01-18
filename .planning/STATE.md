@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 6 — Calendar UI
+**Current focus:** Phase 6 — Calendar UI (completing interactions)
 
 ## Current Position
 
-Phase: 6 of 10 (Calendar UI)
-Plan: 2 of 3 in current phase
+Phase: 6 of 10 (Calendar UI) + Phase 6.5 (Schedule Chat) inserted
+Plan: 5 of 6 in current phase (06-05 complete)
 Status: In progress
-Last activity: 2026-01-17 — Completed 06-02-PLAN.md
+Last activity: 2026-01-18 — Completed 06-05-PLAN.md (Dashboard Sidebar)
 
-Progress: ██████████████████░░ 57%
+Progress: ████████████████████░ 62%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
-- Average duration: 5 min
-- Total execution time: 1.4 hours
+- Total plans completed: 20
+- Average duration: 6 min
+- Total execution time: 2.0 hours
 
 **By Phase:**
 
@@ -32,11 +32,22 @@ Progress: ██████████████████░░ 57%
 | 3 | 3/3 | 12 min | 4 min |
 | 4 | 3/3 | 15 min | 5 min |
 | 5 | 3/3 | 15 min | 5 min |
-| 6 | 2/3 | 8 min | 4 min |
+| 6 | 5/6 | 50 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (5 min), 05-02 (5 min), 05-03 (5 min), 06-01 (3 min), 06-02 (5 min)
-- Trend: Consistent execution speed
+- Last 5 plans: 06-01 (3 min), 06-02 (5 min), 06-03 (15 min), 06-04 (20 min), 06-05 (15 min)
+- Trend: Phase 6 required revision and more extensive work due to discovered issues
+
+## Major Revision: CALENDAR_REVISION.md
+
+Created 2026-01-17 after user testing revealed critical issues:
+- Calendar used mock data instead of real API
+- No schedule persistence (lost on refresh)
+- Missing dashboard sidebar and chatbox
+- Scheduler bug (rationale never attached to events)
+- Locked events all gray instead of realm-colored
+
+**Resolution:** Expanded Phase 6 from 3 plans to 6 plans, inserted Phase 6.5 for chat functionality.
 
 ## Accumulated Context
 
@@ -76,10 +87,17 @@ Recent decisions affecting current work:
 - (calendar) 8 realm colors for visual distinction (health, career, learning, relationships, creativity, finance, personal, spiritual)
 - (calendar) Flexibility dots: green=high, yellow=medium, red=low
 - (calendar) Single popover open at a time for clean UX
+- (calendar) Three-column layout: Dashboard | WeekGrid | Chatbox
+- (calendar) Dashboard hidden on <lg screens, chatbox hidden on <xl screens
+- (calendar) Locked events colored by realm (meals=health, commute=personal, fixed=career), only sleep is gray
+- (database) Schedule persistence with generated_schedules table (JSONB events)
+- (database) Type assertions (supabase as any) until types regenerated after migration
+- (chat) Phase 6.5 inserted for LLM-powered schedule refinement
 
 ### Pending Todos
 
-None yet.
+- Plan 06-06: Recalibrate with feedback prompt
+- Phase 6.5: Chat infrastructure and chatbox UI
 
 ### Blockers/Concerns
 
@@ -87,6 +105,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-17
-Stopped at: Completed 06-02-PLAN.md (Event Display)
+Last session: 2026-01-18
+Stopped at: Completed 06-05-PLAN.md (Dashboard Sidebar)
 Resume file: None
+Next: Plan 06-06 (Interactions & Polish) or Phase 6.5 (Schedule Chat)
