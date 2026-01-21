@@ -14,6 +14,12 @@ const envSchema = z.object({
   // Self-hosted LLM (optional - chat features use offline mode without it)
   LLM_BASE_URL: z.string().url().optional(),
   LLM_MODEL: z.string().optional(),
+  LLM_SCHEDULE: z.string().optional(),    // "09:00-14:00" or "09:00-14:00,18:00-22:00"
+  LLM_TIMEZONE: z.string().optional(),    // "America/New_York" (default)
+
+  // OpenAI API fallback (optional - used when self-hosted is unavailable)
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().optional(),    // "gpt-4o-mini" (default)
 
   // Node environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
