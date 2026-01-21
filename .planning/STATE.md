@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 6 — Calendar UI (completing interactions)
+**Current focus:** Phase 6.5 — Schedule Chat (LLM infrastructure)
 
 ## Current Position
 
-Phase: 6 of 10 (Calendar UI) + Phase 6.5 (Schedule Chat) inserted
-Plan: 6 of 6 in current phase (06-06 complete)
-Status: Phase complete
-Last activity: 2026-01-18 — Completed 06-06-PLAN.md (Interactions & Polish)
+Phase: 6.5 of 10 (Schedule Chat)
+Plan: 1 of 2 in current phase (6.5-01 complete)
+Status: Plan 6.5-01 complete
+Last activity: 2026-01-21 — Completed 6.5-01-PLAN.md (LLM Infrastructure)
 
-Progress: █████████████████████░ 64%
+Progress: █████████████████████░ 66%
 
 ## Performance Metrics
 
@@ -95,10 +95,15 @@ Recent decisions affecting current work:
 - (chat) Phase 6.5 inserted for LLM-powered schedule refinement
 - (calendar) Local state tracking for completion status (completedEventIds Set)
 - (calendar) Removed disabled Reschedule button - cleaner UX until Phase 6.5
+- (llm) Self-hosted vLLM strategy: GPU compute on RunPod/Lambda, time-windowed availability, graceful degradation when offline
+- (llm) Provider abstraction: LLMProvider interface supports self-hosted, API fallback, offline providers
+- (llm) Hybrid fallback with API rate limit: OpenAI GPT-4o-mini as fallback, 10 messages/day per user limit
+- (llm) Time-window scheduling: LLM_SCHEDULE env var for GPU availability windows (e.g., "09:00-14:00")
 
 ### Pending Todos
 
-- Phase 6.5: Chat infrastructure and chatbox UI
+- Phase 6.5: Chatbox UI (Plan 6.5-02)
+- Run migration 00007_api_usage.sql on Supabase
 
 ### Blockers/Concerns
 
@@ -106,7 +111,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-18
-Stopped at: Completed 06-06-PLAN.md (Interactions & Polish) - Phase 6 complete
+Last session: 2026-01-21
+Stopped at: Completed 6.5-01-PLAN.md (LLM Infrastructure)
 Resume file: None
-Next: Phase 6.5 (Schedule Chat)
+Next: Plan 6.5-02 (Chatbox UI)
