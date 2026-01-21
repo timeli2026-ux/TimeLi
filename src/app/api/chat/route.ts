@@ -8,6 +8,7 @@
  * Features:
  * - Authenticates user
  * - Rate limits (20 requests per minute)
+ * - API usage tracking for fallback provider
  * - Fast-fails if LLM offline
  * - Persists conversation history
  * - Returns assistant response
@@ -16,6 +17,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLLMProvider, getLLMStatus } from '@/lib/llm'
 import { getOrCreateConversation, addMessage, toPromptMessages, StoredMessage } from '@/lib/services/conversation'
+import { getApiUsage, incrementApiUsage } from '@/lib/services/api-usage'
 import { rateLimit } from '@/lib/rate-limit'
 import { NextResponse } from 'next/server'
 
@@ -66,21 +68,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'weekStart must be YYYY-MM-DD format' }, { status: 400 })
     }
 
-    // 4. Check LLM status first (fast fail)
-    const status = await getLLMStatus()
+    // 4. Get API usage for routing context
+    const usage = await getApiUsage(supabase, user.id)
+    const routerContext = {
+      userId: user.id,
+      apiUsageRemaining: usage.remaining,
+    }
+
+    // 5. Check LLM status first (fast fail)
+    const status = await getLLMStatus(routerContext)
     if (!status.available) {
       return NextResponse.json({
         error: 'Chat unavailable',
         offline: true,
         message: status.message,
+        apiUsage: status.apiUsage,
       }, { status: 503 })
     }
 
-    // 5. Get provider and conversation
-    const provider = await getLLMProvider()
+    // 6. Get provider and conversation
+    const provider = await getLLMProvider(routerContext)
     const conversation = await getOrCreateConversation(supabase, user.id, weekStart)
 
-    // 6. Add user message
+    // 7. Add user message
     const userMessage: StoredMessage = {
       role: 'user',
       content: message,
@@ -88,13 +98,19 @@ export async function POST(request: Request) {
     }
     await addMessage(supabase, conversation.id, userMessage)
 
-    // 7. Build prompt with conversation history
+    // 8. Build prompt with conversation history
     const messages = toPromptMessages([...conversation.messages, userMessage], SYSTEM_PROMPT)
 
-    // 8. Call LLM
+    // 9. Call LLM
     const response = await provider.chat(messages, { maxTokens: 500 })
 
-    // 9. Save assistant response
+    // 10. If API fallback was used, increment usage
+    const usedApiFallback = provider.getName() === 'openai-api'
+    if (usedApiFallback) {
+      await incrementApiUsage(supabase, user.id)
+    }
+
+    // 11. Save assistant response
     const assistantMessage: StoredMessage = {
       role: 'assistant',
       content: response.content,
@@ -102,10 +118,17 @@ export async function POST(request: Request) {
     }
     await addMessage(supabase, conversation.id, assistantMessage)
 
-    // 10. Return response
+    // 12. Return response with usage info if API was used
     return NextResponse.json({
       message: response.content,
       provider: response.provider,
+      ...(usedApiFallback && {
+        apiUsage: {
+          used: usage.used + 1,
+          limit: usage.limit,
+          remaining: usage.remaining - 1,
+        },
+      }),
     })
 
   } catch (error) {
