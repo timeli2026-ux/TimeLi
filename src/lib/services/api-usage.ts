@@ -9,7 +9,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export const DAILY_API_LIMIT = 10
+// Configurable via env - set high for testing, lower for production
+export const DAILY_API_LIMIT = parseInt(process.env.API_DAILY_LIMIT || '10', 10)
 
 export interface UsageResult {
   used: number
