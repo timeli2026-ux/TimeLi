@@ -22,9 +22,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Onboarding Flow** - 8-step wizard for user setup
 - [x] **Phase 5: Scheduling Engine** - Deterministic constraint satisfaction algorithm
 - [x] **Phase 6: Calendar UI** - Week view with dashboard and interactions (expanded to 6 plans)
-- [ ] **Phase 6.5: Schedule Chat** - LLM-powered schedule refinement via conversation (INSERTED)
-- [ ] **Phase 7: Goals & Preferences** - Goals management and preference system
-- [ ] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
+- [x] **Phase 6.5: Schedule Chat** - LLM-powered schedule refinement via conversation (INSERTED)
+- [x] **Phase 7: Goals & Preferences** - Goals management and preference system
+- [x] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
 - [ ] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
 - [ ] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
 
@@ -132,9 +132,9 @@ Created CALENDAR_REVISION.md with expanded plan structure.
 **Requirements**: New - schedule modification via natural language
 
 Plans:
-- [ ] 6.5-01: Chat Infrastructure (Claude API setup, conversation storage)
-- [ ] 6.5-02: Chatbox UI (message display, input, typing indicator)
-- [ ] 6.5-03: Schedule Modification (parse requests, apply changes, feedback loop)
+- [x] 6.5-01: Chat Infrastructure (Claude API setup, conversation storage)
+- [x] 6.5-02: Chatbox UI (message display, input, typing indicator)
+- [x] 6.5-03: Schedule Modification (parse requests, apply changes, feedback loop)
 
 ### Phase 7: Goals & Preferences
 **Goal**: Goals CRUD and comprehensive preference editing
