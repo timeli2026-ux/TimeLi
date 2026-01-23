@@ -159,7 +159,7 @@ Plans:
 Plans:
 - [x] 08-01: LLM infrastructure (server-only, key protection)
 - [ ] 08-02: Parse and clarify endpoints
-- [ ] 08-03: Explain and confirm endpoints
+- [x] 08-03: Explain and confirm endpoints
 - [ ] 08-04: Cost control (budgets, caching, dedup)
 
 ### Phase 9: Settings & Billing
@@ -204,7 +204,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Calendar UI | 6/6 | Complete | 2026-01-18 |
 | 6.5. Schedule Chat | 3/3 | Complete | 2026-01-23 |
 | 7. Goals & Preferences | 3/3 | Complete | 2026-01-23 |
-| 8. LLM Gateway | 1/4 | In progress | - |
+| 8. LLM Gateway | 2/4 | In progress | - |
 | 9. Settings & Billing | 0/3 | Not started | - |
 | 10. Hardening & Launch | 0/4 | Not started | - |
 

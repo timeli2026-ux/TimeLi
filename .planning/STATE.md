@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 8 of 10 (LLM Gateway)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In progress
-Last activity: 2026-01-23 — Completed 08-01-PLAN.md (LLM Infrastructure Enhancement)
+Last activity: 2026-01-23 — Completed 08-03-PLAN.md (Explain Rationale & Confirm Preference)
 
-Progress: █████████████████████████░░░ 87%
+Progress: ██████████████████████████░░ 90%
 
 ## Performance Metrics
 
@@ -34,11 +34,11 @@ Progress: ███████████████████████�
 | 5 | 3/3 | 15 min | 5 min |
 | 6 | 6/6 | 54 min | 9 min |
 | 7 | 3/3 | 20 min | 7 min |
-| 8 | 1/4 | 3 min | 3 min |
+| 8 | 2/4 | 7 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 6.5-03 (N/A), 07-01 (8 min), 07-02 (6 min), 07-03 (6 min), 08-01 (3 min)
-- Trend: Phase 8 started - LLM gateway infrastructure in progress
+- Last 5 plans: 07-01 (8 min), 07-02 (6 min), 07-03 (6 min), 08-01 (3 min), 08-03 (4 min)
+- Trend: Phase 8 progressing - LLM prompts and secure logging complete
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -121,6 +121,10 @@ Recent decisions affecting current work:
 - (llm-08) In-memory LRU cache (100 entries, 5min TTL) for dev - Upstash for prod
 - (llm-08) Token usage records per request for granular analytics
 - (llm-08) Fail open on usage tracking errors for UX
+- (llm-08) <=240 char limit for rationale explanations (UI-friendly)
+- (llm-08) SHA-256 first 8 chars for userId hashing in logs
+- (llm-08) Conversational, non-presumptuous preference confirmation
+- (llm-08) SEC-16 compliant logging: NEVER log API keys, secrets, or PII
 
 ### Pending Todos
 
@@ -133,6 +137,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 08-01-PLAN.md (LLM Infrastructure Enhancement)
+Stopped at: Completed 08-03-PLAN.md (Explain Rationale & Confirm Preference)
 Resume file: None
-Next: 08-02-PLAN.md (Parse and clarify endpoints)
+Next: 08-02-PLAN.md or 08-04-PLAN.md (parallel wave execution)
