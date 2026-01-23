@@ -20,8 +20,8 @@ export async function GET() {
     }
 
     // Query user_goals with realm info via join
-    // Using type assertion until types are regenerated
-    const { data: goals, error: goalsError } = await (supabase as ReturnType<typeof createClient> extends Promise<infer T> ? T : never)
+    // Using (supabase as any) until types are regenerated
+    const { data: goals, error: goalsError } = await (supabase as any)
       .from('user_goals')
       .select(`
         id,
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
     const sanitizedTitle = sanitizeUserInput(data.title, { maxLength: 100 })
 
     // Insert into user_goals
-    const { data: newGoal, error: insertError } = await (supabase as ReturnType<typeof createClient> extends Promise<infer T> ? T : never)
+    const { data: newGoal, error: insertError } = await (supabase as any)
       .from('user_goals')
       .insert({
         user_id: user.id,

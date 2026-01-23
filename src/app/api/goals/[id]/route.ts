@@ -24,7 +24,7 @@ export async function GET(
     }
 
     // Query single goal with realm info
-    const { data: goal, error: goalError } = await (supabase as ReturnType<typeof createClient> extends Promise<infer T> ? T : never)
+    const { data: goal, error: goalError } = await (supabase as any)
       .from('user_goals')
       .select(`
         id,
@@ -166,7 +166,7 @@ export async function PUT(
     }
 
     // Update user_goals where id matches and user_id matches
-    const { data: updatedGoal, error: updateError } = await (supabase as ReturnType<typeof createClient> extends Promise<infer T> ? T : never)
+    const { data: updatedGoal, error: updateError } = await (supabase as any)
       .from('user_goals')
       .update(updateData)
       .eq('id', id)
@@ -259,7 +259,7 @@ export async function DELETE(
     }
 
     // Delete from user_goals where id matches and user_id matches
-    const { error: deleteError, count } = await (supabase as ReturnType<typeof createClient> extends Promise<infer T> ? T : never)
+    const { error: deleteError, count } = await (supabase as any)
       .from('user_goals')
       .delete({ count: 'exact' })
       .eq('id', id)
