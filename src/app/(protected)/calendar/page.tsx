@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Calendar, CalendarX, RefreshCw, MessageSquare } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarX, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { WeekGrid } from '@/components/calendar/week-grid'
 import { CompletionModal, type CompletionStatus } from '@/components/calendar/completion-modal'
 import { RecalibrateDialog, type RecalibrateScope } from '@/components/calendar/recalibrate-dialog'
 import { DashboardSidebar } from '@/components/calendar/dashboard-sidebar'
+import { Chatbox } from '@/components/calendar/chatbox'
 import type { ScheduleEventWithFlexibility, TimeSlot, SchedulerStats } from '@/lib/scheduling/types'
 import {
   getWeekStart,
@@ -95,50 +96,51 @@ export default function CalendarPage() {
     setWeekStart(currentWeekStart)
   }, [currentWeekStart])
 
-  // Load schedule from API on mount and week change
-  useEffect(() => {
-    const loadSchedule = async () => {
-      setIsLoading(true)
-      setError(null)
+  // Load schedule from API
+  const loadSchedule = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
 
-      const weekStartStr = formatDateToString(weekStart)
+    const weekStartStr = formatDateToString(weekStart)
 
-      try {
-        const response = await fetch(`/api/schedule/${weekStartStr}`)
+    try {
+      const response = await fetch(`/api/schedule/${weekStartStr}`)
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError('Please log in to view your schedule')
-          } else {
-            setError('Failed to load schedule')
-          }
-          setEvents([])
-          setScheduleExists(false)
-          return
-        }
-
-        const data = await response.json()
-
-        if (data.exists && data.schedule?.events) {
-          setEvents(data.schedule.events)
-          setScheduleExists(true)
-          setScheduleStats(data.schedule.stats)
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Please log in to view your schedule')
         } else {
-          setEvents([])
-          setScheduleExists(false)
-          setScheduleStats(undefined)
+          setError('Failed to load schedule')
         }
-      } catch {
-        setError('Network error - please try again')
         setEvents([])
         setScheduleExists(false)
-      } finally {
-        setIsLoading(false)
+        return
       }
-    }
 
-    loadSchedule()
+      const data = await response.json()
+
+      if (data.exists && data.schedule?.events) {
+        setEvents(data.schedule.events)
+        setScheduleExists(true)
+        setScheduleStats(data.schedule.stats)
+      } else {
+        setEvents([])
+        setScheduleExists(false)
+        setScheduleStats(undefined)
+      }
+    } catch {
+      setError('Network error - please try again')
+      setEvents([])
+      setScheduleExists(false)
+    } finally {
+      setIsLoading(false)
+    }
   }, [weekStart])
+
+  // Load schedule on mount and week change
+  useEffect(() => {
+    loadSchedule()
+  }, [loadSchedule])
 
   // Handle event click
   const handleEventClick = useCallback((event: ScheduleEventWithFlexibility) => {
@@ -421,35 +423,13 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Right Sidebar: Chatbox Placeholder */}
+      {/* Right Sidebar: Chatbox */}
       {scheduleExists && !isLoading && (
-        <div className="hidden xl:flex w-72 flex-col border-l bg-muted/30 p-4 flex-shrink-0">
-          <div className="flex items-center gap-2 mb-4">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            <h2 className="font-semibold">Schedule Assistant</h2>
-          </div>
-
-          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground">
-            <MessageSquare className="h-12 w-12 mb-4 opacity-50" />
-            <p className="text-sm">Chat with your schedule assistant</p>
-            <p className="text-xs mt-2">Coming soon...</p>
-          </div>
-
-          {/* Chat input placeholder */}
-          <div className="mt-auto pt-4 border-t">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Ask about your schedule..."
-                className="flex-1 px-3 py-2 text-sm rounded-md border bg-background"
-                disabled
-              />
-              <Button size="sm" disabled>
-                Send
-              </Button>
-            </div>
-          </div>
-        </div>
+        <Chatbox
+          weekStart={weekStart}
+          onScheduleChange={loadSchedule}
+          className="hidden xl:flex w-72 flex-col border-l bg-muted/30 flex-shrink-0"
+        />
       )}
 
       {/* Completion Modal */}
