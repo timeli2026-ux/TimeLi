@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Send, Bot, User, CloudOff, Loader2 } from 'lucide-react'
+import { Send, Bot, User, CloudOff, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -10,10 +10,18 @@ import { cn } from '@/lib/utils'
 // TYPES
 // =============================================================================
 
+interface ModificationResult {
+  action: string
+  success: boolean
+  eventId?: string
+  error?: string
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: string
+  modification?: ModificationResult
 }
 
 interface LLMStatusResponse {
@@ -52,6 +60,8 @@ const STATUS_CHECK_INTERVAL = 30000 // 30 seconds
  * - Loading states with typing indicator
  * - Graceful offline mode handling
  * - Auto-scroll to newest messages
+ * - Schedule modification result display
+ * - Calendar refresh on successful modifications
  */
 export function Chatbox({ weekStart, onScheduleChange, className }: ChatboxProps) {
   // State
@@ -148,16 +158,17 @@ export function Chatbox({ weekStart, onScheduleChange, className }: ChatboxProps
 
       const data = await response.json()
 
-      // Add assistant response to conversation
+      // Add assistant response to conversation with modification info
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.response,
+        content: data.message,
         timestamp: new Date().toISOString(),
+        modification: data.modification,
       }
       setMessages((prev) => [...prev, assistantMessage])
 
-      // Check if schedule was modified
-      if (data.scheduleModified && onScheduleChange) {
+      // Check if schedule was modified successfully - trigger calendar refresh
+      if (data.modification?.success && onScheduleChange) {
         onScheduleChange()
       }
     } catch {
@@ -182,6 +193,31 @@ export function Chatbox({ weekStart, onScheduleChange, className }: ChatboxProps
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
     return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  }
+
+  // Get modification status display
+  const getModificationDisplay = (modification: ModificationResult) => {
+    if (modification.success) {
+      const actionText = {
+        move: 'Schedule updated',
+        delete: 'Event removed',
+        feedback: 'Preference saved',
+      }[modification.action] || 'Change applied'
+
+      return (
+        <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs mt-1">
+          <CheckCircle className="h-3 w-3" />
+          <span>{actionText}</span>
+        </div>
+      )
+    } else {
+      return (
+        <div className="flex items-center gap-1 text-destructive text-xs mt-1">
+          <XCircle className="h-3 w-3" />
+          <span>{modification.error || 'Failed to update'}</span>
+        </div>
+      )
+    }
   }
 
   // =============================================================================
@@ -262,7 +298,7 @@ export function Chatbox({ weekStart, onScheduleChange, className }: ChatboxProps
             <Bot className="h-8 w-8 mb-2 opacity-50" />
             <p className="text-sm">Ask me anything about your schedule...</p>
             <p className="text-xs mt-2 max-w-[200px]">
-              I can help you understand your week, find free time, or suggest adjustments.
+              I can help you understand your week, move events, or remember your preferences.
             </p>
           </div>
         ) : (
@@ -310,6 +346,8 @@ export function Chatbox({ weekStart, onScheduleChange, className }: ChatboxProps
                 >
                   {formatTime(message.timestamp)}
                 </p>
+                {/* Modification status indicator */}
+                {message.modification && getModificationDisplay(message.modification)}
               </div>
             </div>
           ))
