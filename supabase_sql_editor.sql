@@ -21,6 +21,7 @@
 -- - schedule_completions table (tracks completed/skipped events)
 -- - schedule_feedback table (user preferences from chat)
 -- - schedule_conversations table (chat history with LLM)
+-- - api_usage table (daily API rate limiting for OpenAI fallback)
 -- =============================================================================
 
 -- =============================================================================
@@ -158,7 +159,7 @@ CREATE POLICY "Users can update own completions"
   ON public.schedule_completions FOR UPDATE
   USING ((SELECT auth.uid()) = user_id)
   WITH CHECK ((SELECT auth.uid()) = user_id);
-1
+
 CREATE POLICY "Users can delete own completions"
   ON public.schedule_completions FOR DELETE
   USING ((SELECT auth.uid()) = user_id);
@@ -242,6 +243,45 @@ CREATE INDEX schedule_conversations_user_week_idx
   ON public.schedule_conversations(user_id, week_start);
 
 -- =============================================================================
+-- TABLE: api_usage
+-- =============================================================================
+-- Tracks per-user daily API usage when using OpenAI fallback.
+-- Users get 10 API messages per day, resets at midnight.
+
+DROP TABLE IF EXISTS public.api_usage CASCADE;
+
+CREATE TABLE public.api_usage (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  message_count INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
+ALTER TABLE public.api_usage ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own usage"
+  ON public.api_usage FOR SELECT
+  USING ((SELECT auth.uid()) = user_id);
+
+-- Function for atomic increment (upsert with increment)
+CREATE OR REPLACE FUNCTION increment_api_usage(p_user_id UUID, p_date DATE)
+RETURNS void AS $$
+BEGIN
+  INSERT INTO api_usage (user_id, date, message_count)
+  VALUES (p_user_id, p_date, 1)
+  ON CONFLICT (user_id, date)
+  DO UPDATE SET
+    message_count = api_usage.message_count + 1,
+    updated_at = NOW();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE INDEX idx_api_usage_user_date ON public.api_usage(user_id, date);
+
+-- =============================================================================
 -- SCHEMA RELOAD
 -- =============================================================================
 
@@ -257,6 +297,7 @@ NOTIFY pgrst, 'reload schema';
 -- - schedule_completions
 -- - schedule_feedback
 -- - schedule_conversations
+-- - api_usage
 --
 -- You can verify by running:
 -- SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
