@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 8 of 10 (LLM Gateway)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-01-23 — Completed 08-03-PLAN.md (Explain Rationale & Confirm Preference)
+Last activity: 2026-01-23 — Completed 08-02-PLAN.md (Parse Goal and Clarify Endpoints)
 
 Progress: ██████████████████████████░░ 90%
 
@@ -34,11 +34,11 @@ Progress: ███████████████████████�
 | 5 | 3/3 | 15 min | 5 min |
 | 6 | 6/6 | 54 min | 9 min |
 | 7 | 3/3 | 20 min | 7 min |
-| 8 | 2/4 | 7 min | 4 min |
+| 8 | 3/4 | 13 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-01 (8 min), 07-02 (6 min), 07-03 (6 min), 08-01 (3 min), 08-03 (4 min)
-- Trend: Phase 8 progressing - LLM prompts and secure logging complete
+- Last 5 plans: 07-02 (6 min), 07-03 (6 min), 08-01 (3 min), 08-03 (4 min), 08-02 (6 min)
+- Trend: Phase 8 progressing - parse-goal endpoint and prompts complete
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -125,6 +125,10 @@ Recent decisions affecting current work:
 - (llm-08) SHA-256 first 8 chars for userId hashing in logs
 - (llm-08) Conversational, non-presumptuous preference confirmation
 - (llm-08) SEC-16 compliant logging: NEVER log API keys, secrets, or PII
+- (llm-08) 8 realm types in goal parser: health, career, learning, relationships, creativity, finance, personal, spiritual
+- (llm-08) Required goal fields: hours_per_week, sessions_per_week, realm_name (ask clarification if missing)
+- (llm-08) 10 requests/min rate limit for parse-goal endpoint
+- (llm-08) Response caching for identical inputs via LRU cache
 
 ### Pending Todos
 
@@ -137,6 +141,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 08-03-PLAN.md (Explain Rationale & Confirm Preference)
+Stopped at: Completed 08-02-PLAN.md (Parse Goal and Clarify Endpoints)
 Resume file: None
-Next: 08-02-PLAN.md or 08-04-PLAN.md (parallel wave execution)
+Next: 08-04-PLAN.md (LLM API Integration)
