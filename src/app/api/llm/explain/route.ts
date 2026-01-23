@@ -1,18 +1,16 @@
 /**
- * Parse Goal API Endpoint
- * Phase 8: LLM Gateway - Plan 02 & 04
+ * Explain Rationale API Endpoint
+ * Phase 8: LLM Gateway - Plan 04
  *
- * POST /api/llm/parse-goal
- * Parses natural language goal descriptions into structured data.
+ * POST /api/llm/explain
+ * Generates human-readable explanations for why events were scheduled.
  *
  * Features:
  * - Authenticates user
- * - Rate limits (10 requests per minute)
  * - Checks token budgets (daily and session)
- * - Checks LLM availability
  * - Caches responses for identical inputs
  * - Tracks token usage (daily and session)
- * - Returns structured goal or clarification questions
+ * - Returns explanations <=240 characters
  */
 
 import { cookies } from 'next/headers'
@@ -26,10 +24,15 @@ import {
   generateSessionId,
 } from '@/lib/llm/token-budget'
 import { rateLimit } from '@/lib/rate-limit'
-import { buildGoalParserPrompt, parseGoalResponse, isClarificationNeeded } from '@/lib/llm/prompts/goal-parser'
+import {
+  buildExplainPrompt,
+  parseExplainResponse,
+  type ScoringFactor,
+} from '@/lib/llm/prompts/explain-rationale'
 import { getApiUsage } from '@/lib/services/api-usage'
 import { recordCacheHit, recordCacheMiss } from '@/app/api/llm/usage/route'
 import type { ChatMessage, ChatResponse } from '@/lib/llm/types'
+import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
 import { NextResponse } from 'next/server'
 
 // Session cookie name
@@ -39,9 +42,9 @@ const SESSION_COOKIE = 'llm_session_id'
 // TYPES
 // =============================================================================
 
-interface ParseGoalRequest {
-  message: string
-  context?: string
+interface ExplainRequest {
+  event: ScheduleEventWithFlexibility
+  scoringFactors: ScoringFactor[]
 }
 
 // =============================================================================
@@ -65,8 +68,8 @@ export async function POST(request: Request) {
       sessionId = generateSessionId(user.id)
     }
 
-    // 3. Rate limit (10 requests per minute per user)
-    const rateLimitResult = rateLimit(`parse-goal:${user.id}`, { interval: 60000, limit: 10 })
+    // 3. Rate limit (20 requests per minute - explanations are quick)
+    const rateLimitResult = rateLimit(`explain:${user.id}`, { interval: 60000, limit: 20 })
     if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: 'Too many requests. Please wait before trying again.', remaining: 0 },
@@ -75,21 +78,21 @@ export async function POST(request: Request) {
     }
 
     // 4. Parse request body
-    let body: ParseGoalRequest
+    let body: ExplainRequest
     try {
       body = await request.json()
     } catch {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const { message, context } = body
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json({ error: 'message is required' }, { status: 400 })
+    const { event, scoringFactors } = body
+    if (!event || !scoringFactors) {
+      return NextResponse.json({ error: 'event and scoringFactors are required' }, { status: 400 })
     }
 
-    // Validate message length
-    if (message.length > 1000) {
-      return NextResponse.json({ error: 'message too long (max 1000 characters)' }, { status: 400 })
+    // Validate event has required fields
+    if (!event.title || !event.slot) {
+      return NextResponse.json({ error: 'event must have title and slot' }, { status: 400 })
     }
 
     // 5. Check token budget BEFORE calling LLM
@@ -109,31 +112,28 @@ export async function POST(request: Request) {
     }
 
     // 6. Get API usage for router context
-    const usage = await getApiUsage(supabase, user.id)
+    const apiUsage = await getApiUsage(supabase, user.id)
     const routerContext = {
       userId: user.id,
-      apiUsageRemaining: usage.remaining,
+      apiUsageRemaining: apiUsage.remaining,
     }
 
     // 7. Check LLM status (fast fail)
     const status = await getLLMStatus(routerContext)
     if (!status.available) {
       return NextResponse.json({
-        error: 'Goal parsing unavailable',
+        error: 'Explanation unavailable',
         offline: true,
         message: status.message,
       }, { status: 503 })
     }
 
     // 8. Build messages for LLM
-    const systemPrompt = buildGoalParserPrompt()
-    const userMessage = context
-      ? `Context: ${context}\n\nGoal: ${message}`
-      : message
+    const systemPrompt = buildExplainPrompt(event, scoringFactors)
 
     const messages: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMessage },
+      { role: 'user', content: 'Generate the explanation.' },
     ]
 
     // 9. Check cache
@@ -144,22 +144,11 @@ export async function POST(request: Request) {
       // Record cache hit
       recordCacheHit(estimateTokens(messages))
 
-      // Parse cached response
-      const parsed = parseGoalResponse(cached.content)
-      if (parsed) {
-        if (isClarificationNeeded(parsed)) {
-          return NextResponse.json({
-            needsClarification: true,
-            questions: parsed.questions,
-            cached: true,
-          })
-        }
-        return NextResponse.json({
-          goal: parsed,
-          cached: true,
-        })
-      }
-      // Cache hit but parse failed - continue to fresh call
+      const explanation = parseExplainResponse(cached.content)
+      return NextResponse.json({
+        explanation,
+        cached: true,
+      })
     }
 
     // Record cache miss
@@ -170,11 +159,11 @@ export async function POST(request: Request) {
     let response: ChatResponse
 
     try {
-      response = await provider.chat(messages, { maxTokens: 500, temperature: 0.3 })
+      response = await provider.chat(messages, { maxTokens: 100, temperature: 0.5 })
     } catch (llmError) {
-      console.error('[ParseGoal] LLM call failed:', llmError)
+      console.error('[Explain] LLM call failed:', llmError)
       return NextResponse.json(
-        { error: 'Failed to process goal description' },
+        { error: 'Failed to generate explanation' },
         { status: 500 }
       )
     }
@@ -183,49 +172,29 @@ export async function POST(request: Request) {
     let inputTokens = 0
     let outputTokens = 0
     try {
-      // Estimate tokens if not provided
       inputTokens = response.tokensUsed
-        ? Math.round(response.tokensUsed * 0.8) // Rough estimate: 80% input
+        ? Math.round(response.tokensUsed * 0.8)
         : estimateTokens(messages)
       outputTokens = response.tokensUsed
-        ? Math.round(response.tokensUsed * 0.2) // Rough estimate: 20% output
+        ? Math.round(response.tokensUsed * 0.2)
         : Math.round(response.content.length / 4)
 
-      // Record to daily tracker (database)
       await recordTokenUsage(supabase, user.id, inputTokens, outputTokens, response.provider)
-
-      // Record to session tracker (in-memory)
       recordSessionUsage(sessionId, inputTokens, outputTokens)
     } catch (trackingError) {
-      console.warn('[ParseGoal] Token tracking failed:', trackingError)
-      // Don't fail the request - tracking is non-critical
+      console.warn('[Explain] Token tracking failed:', trackingError)
     }
 
     // 12. Cache the response
     setCached(cacheKey, response)
 
-    // 13. Parse response
-    const parsed = parseGoalResponse(response.content)
+    // 13. Parse and return response
+    const explanation = parseExplainResponse(response.content)
 
-    if (!parsed) {
-      console.error('[ParseGoal] Failed to parse LLM response:', response.content)
-      return NextResponse.json(
-        { error: 'Failed to extract goal information. Please try rephrasing.' },
-        { status: 500 }
-      )
-    }
-
-    // 14. Build response with usage header
-    const jsonResponse = isClarificationNeeded(parsed)
-      ? NextResponse.json({
-          needsClarification: true,
-          questions: parsed.questions,
-          provider: response.provider,
-        })
-      : NextResponse.json({
-          goal: parsed,
-          provider: response.provider,
-        })
+    const jsonResponse = NextResponse.json({
+      explanation,
+      provider: response.provider,
+    })
 
     // Add token usage header
     jsonResponse.headers.set(
@@ -236,10 +205,9 @@ export async function POST(request: Request) {
     return jsonResponse
 
   } catch (error) {
-    console.error('[ParseGoal] Unexpected error:', error)
-    // Sanitize error - don't expose internal details
+    console.error('[Explain] Unexpected error:', error)
     return NextResponse.json(
-      { error: 'Failed to parse goal' },
+      { error: 'Failed to generate explanation' },
       { status: 500 }
     )
   }
