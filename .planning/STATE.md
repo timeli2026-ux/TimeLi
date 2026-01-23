@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 7 — Goals & Preferences
+**Current focus:** Phase 8 — LLM Gateway
 
 ## Current Position
 
-Phase: 7 of 10 (Goals & Preferences)
-Plan: 3 of 3 in current phase (07-03 complete - Phase 7 DONE)
-Status: Phase complete
-Last activity: 2026-01-23 — Completed 07-03-PLAN.md (Preferences System)
+Phase: 8 of 10 (LLM Gateway)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-01-23 — Completed 08-01-PLAN.md (LLM Infrastructure Enhancement)
 
-Progress: ████████████████████████░ 77%
+Progress: █████████████████████████░░░ 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
+- Total plans completed: 27
 - Average duration: 6 min
-- Total execution time: 2.4 hours
+- Total execution time: 2.5 hours
 
 **By Phase:**
 
@@ -34,10 +34,11 @@ Progress: ███████████████████████�
 | 5 | 3/3 | 15 min | 5 min |
 | 6 | 6/6 | 54 min | 9 min |
 | 7 | 3/3 | 20 min | 7 min |
+| 8 | 1/4 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-06 (4 min), 6.5-03 (N/A), 07-01 (8 min), 07-02 (6 min), 07-03 (6 min)
-- Trend: Phase 7 complete - Goals & Preferences system ready
+- Last 5 plans: 6.5-03 (N/A), 07-01 (8 min), 07-02 (6 min), 07-03 (6 min), 08-01 (3 min)
+- Trend: Phase 8 started - LLM gateway infrastructure in progress
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -116,6 +117,10 @@ Recent decisions affecting current work:
 - (preferences) SchedulePreferencesForm with 5 sections (sleep, energy, meals, commute, buffer)
 - (preferences) PreferencesPanel with skeleton loading states
 - (preferences) Settings navigation tabs for future settings pages
+- (llm-08) claude-3-haiku-20240307 model for cost-effective structured tasks
+- (llm-08) In-memory LRU cache (100 entries, 5min TTL) for dev - Upstash for prod
+- (llm-08) Token usage records per request for granular analytics
+- (llm-08) Fail open on usage tracking errors for UX
 
 ### Pending Todos
 
@@ -128,6 +133,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 07-03-PLAN.md (Preferences System) - Phase 7 Complete
+Stopped at: Completed 08-01-PLAN.md (LLM Infrastructure Enhancement)
 Resume file: None
-Next: Phase 8 (Scheduling Engine)
+Next: 08-02-PLAN.md (Parse and clarify endpoints)
