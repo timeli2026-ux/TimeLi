@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 8 of 10 (LLM Gateway)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-01-23 — Completed 08-02-PLAN.md (Parse Goal and Clarify Endpoints)
+Plan: 4 of 4 in current phase
+Status: Phase complete
+Last activity: 2026-01-23 — Completed 08-04-PLAN.md (Cost Control)
 
-Progress: ██████████████████████████░░ 90%
+Progress: ████████████████████████████░░ 93%
 
 ## Performance Metrics
 
@@ -34,11 +34,11 @@ Progress: ███████████████████████�
 | 5 | 3/3 | 15 min | 5 min |
 | 6 | 6/6 | 54 min | 9 min |
 | 7 | 3/3 | 20 min | 7 min |
-| 8 | 3/4 | 13 min | 4 min |
+| 8 | 4/4 | 18 min | 4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-02 (6 min), 07-03 (6 min), 08-01 (3 min), 08-03 (4 min), 08-02 (6 min)
-- Trend: Phase 8 progressing - parse-goal endpoint and prompts complete
+- Last 5 plans: 07-03 (6 min), 08-01 (3 min), 08-03 (4 min), 08-02 (6 min), 08-04 (5 min)
+- Trend: Phase 8 complete - LLM Gateway fully implemented with cost controls
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -129,6 +129,11 @@ Recent decisions affecting current work:
 - (llm-08) Required goal fields: hours_per_week, sessions_per_week, realm_name (ask clarification if missing)
 - (llm-08) 10 requests/min rate limit for parse-goal endpoint
 - (llm-08) Response caching for identical inputs via LRU cache
+- (llm-08) Session budget: 3k input / 500 output per 30-min window
+- (llm-08) Session ID = hash(userId + window index) for consistent sessions
+- (llm-08) checkCombinedBudget() for pre-flight budget checks
+- (llm-08) X-Token-Usage response header for client-side tracking
+- (llm-08) 429 response with type field (daily_limit | session_limit)
 
 ### Pending Todos
 
@@ -141,6 +146,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 08-02-PLAN.md (Parse Goal and Clarify Endpoints)
+Stopped at: Completed 08-04-PLAN.md (Cost Control)
 Resume file: None
-Next: 08-04-PLAN.md (LLM API Integration)
+Next: 09-01-PLAN.md (Settings Page)
