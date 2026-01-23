@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 6.5 — Schedule Chat (LLM infrastructure)
+**Current focus:** Phase 7 — Goals & Preferences
 
 ## Current Position
 
-Phase: 6.5 of 10 (Schedule Chat)
-Plan: 3 of 3 in current phase (6.5-03 complete)
-Status: Phase 6.5 complete
-Last activity: 2026-01-23 — Completed 6.5-03-PLAN.md (Schedule Modifications)
+Phase: 7 of 10 (Goals & Preferences)
+Plan: 1 of 3 in current phase (07-01 complete)
+Status: In progress
+Last activity: 2026-01-23 — Completed 07-01-PLAN.md (Goals API)
 
-Progress: █████████████████████░ 68%
+Progress: ██████████████████████░ 71%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 6 min
-- Total execution time: 2.1 hours
+- Total execution time: 2.2 hours
 
 **By Phase:**
 
@@ -33,10 +33,11 @@ Progress: █████████████████████░ 68%
 | 4 | 3/3 | 15 min | 5 min |
 | 5 | 3/3 | 15 min | 5 min |
 | 6 | 6/6 | 54 min | 9 min |
+| 7 | 1/3 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (5 min), 06-03 (15 min), 06-04 (20 min), 06-05 (15 min), 06-06 (4 min)
-- Trend: Phase 6 complete - revision extended phase but all issues resolved
+- Last 5 plans: 06-04 (20 min), 06-05 (15 min), 06-06 (4 min), 6.5-03 (N/A), 07-01 (8 min)
+- Trend: Phase 7 started - Goals API complete
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -102,6 +103,9 @@ Recent decisions affecting current work:
 - (chatbox) 30-second status check interval for LLM availability detection
 - (chatbox) Three-state UI: loading, offline, online for clear user feedback
 - (chatbox) Message bubble design: user right-aligned primary, assistant left-aligned muted
+- (goals) API uses (supabase as any) pattern for untyped table queries
+- (goals) Migration endpoint creates realms if missing, skips duplicates
+- (goals) Responses include realm name via join with life_realms
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 6.5-03-PLAN.md (Schedule Modifications)
+Stopped at: Completed 07-01-PLAN.md (Goals API)
 Resume file: None
-Next: Phase 7 (Security Phase)
+Next: 07-02-PLAN.md (Preferences System)

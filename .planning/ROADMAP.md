@@ -144,7 +144,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 07-01: Goals/Actions list and edit form
+- [x] 07-01: Goals/Actions list and edit form
 - [ ] 07-02: Preferences system (global and per-goal)
 - [ ] 07-03: Preferences panel UI
 
@@ -202,8 +202,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
 | 5. Scheduling Engine | 3/3 | Complete | 2026-01-17 |
 | 6. Calendar UI | 6/6 | Complete | 2026-01-18 |
-| 6.5. Schedule Chat | 0/3 | Not started | - |
-| 7. Goals & Preferences | 0/3 | Not started | - |
+| 6.5. Schedule Chat | 3/3 | Complete | 2026-01-23 |
+| 7. Goals & Preferences | 1/3 | In progress | - |
 | 8. LLM Gateway | 0/4 | Not started | - |
 | 9. Settings & Billing | 0/3 | Not started | - |
 | 10. Hardening & Launch | 0/4 | Not started | - |
