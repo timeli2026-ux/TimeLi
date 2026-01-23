@@ -1,6 +1,6 @@
 /**
  * Chat API Endpoint
- * Phase 6.5: Schedule Chat - Plan 01
+ * Phase 6.5: Schedule Chat - Plan 03
  *
  * POST /api/chat
  * Handles chat messages for schedule modification discussions.
@@ -11,7 +11,9 @@
  * - API usage tracking for fallback provider
  * - Fast-fails if LLM offline
  * - Persists conversation history
- * - Returns assistant response
+ * - Parses responses for schedule modifications
+ * - Applies modifications (move, delete, feedback)
+ * - Returns assistant response with modification status
  */
 
 import { createClient } from '@/lib/supabase/server'
@@ -19,14 +21,249 @@ import { getLLMProvider, getLLMStatus } from '@/lib/llm'
 import { getOrCreateConversation, addMessage, toPromptMessages, StoredMessage } from '@/lib/services/conversation'
 import { getApiUsage, incrementApiUsage } from '@/lib/services/api-usage'
 import { rateLimit } from '@/lib/rate-limit'
+import { buildScheduleSystemPrompt } from '@/lib/chat/schedule-prompts'
+import { parseModificationFromResponse, extractTextWithoutJson, type ScheduleModification } from '@/lib/chat/modification-parser'
+import type { ScheduleEventWithFlexibility, TimeSlot } from '@/lib/scheduling/types'
 import { NextResponse } from 'next/server'
 
-// System prompt for schedule assistant
-const SYSTEM_PROMPT = `You are a helpful schedule assistant for TimeLi.
-Help the user understand and modify their weekly schedule.
-Keep responses concise (this is chat, not essay format).
-If the user asks to modify their schedule, acknowledge and confirm the change.
-Be friendly but efficient - users are busy.`
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface ModificationResult {
+  action: string
+  success: boolean
+  eventId?: string
+  error?: string
+}
+
+// =============================================================================
+// HELPER: Load Schedule
+// =============================================================================
+
+async function loadSchedule(
+  supabase: ReturnType<typeof createClient> extends Promise<infer T> ? T : never,
+  userId: string,
+  weekStart: string
+): Promise<ScheduleEventWithFlexibility[] | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: schedule, error } = await (supabase as any)
+    .from('generated_schedules')
+    .select('events')
+    .eq('user_id', userId)
+    .eq('week_start', weekStart)
+    .single()
+
+  if (error || !schedule) {
+    return null
+  }
+
+  return schedule.events as ScheduleEventWithFlexibility[]
+}
+
+// =============================================================================
+// HELPER: Apply Move Modification
+// =============================================================================
+
+async function applyMoveModification(
+  supabase: ReturnType<typeof createClient> extends Promise<infer T> ? T : never,
+  userId: string,
+  weekStart: string,
+  eventId: string,
+  newSlot: { dayOfWeek: number; startTime: string }
+): Promise<ModificationResult> {
+  // Load current schedule
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: schedule, error: loadError } = await (supabase as any)
+    .from('generated_schedules')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('week_start', weekStart)
+    .single()
+
+  if (loadError || !schedule) {
+    return { action: 'move', success: false, eventId, error: 'Schedule not found' }
+  }
+
+  const events = schedule.events as ScheduleEventWithFlexibility[]
+  const eventIndex = events.findIndex(e => e.id === eventId)
+
+  if (eventIndex === -1) {
+    return { action: 'move', success: false, eventId, error: 'Event not found' }
+  }
+
+  // Check if event is locked
+  if (events[eventIndex].isLocked) {
+    return { action: 'move', success: false, eventId, error: 'Cannot move locked events' }
+  }
+
+  // Calculate new end time based on event duration
+  const originalEvent = events[eventIndex]
+  const durationMinutes = originalEvent.slot.durationMinutes
+
+  // Parse start time and calculate end time
+  const [hours, minutes] = newSlot.startTime.split(':').map(Number)
+  const startMinutes = hours * 60 + minutes
+  const endMinutes = startMinutes + durationMinutes
+  const endHours = Math.floor(endMinutes / 60)
+  const endMins = endMinutes % 60
+  const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`
+
+  // Build new slot
+  const fullNewSlot: TimeSlot = {
+    dayOfWeek: newSlot.dayOfWeek,
+    startTime: newSlot.startTime,
+    endTime,
+    durationMinutes,
+  }
+
+  // Update the event
+  events[eventIndex].slot = fullNewSlot
+
+  // Save back to database
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: saveError } = await (supabase as any)
+    .from('generated_schedules')
+    .update({
+      events,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', schedule.id)
+
+  if (saveError) {
+    console.error('Failed to save schedule:', saveError)
+    return { action: 'move', success: false, eventId, error: 'Failed to save schedule' }
+  }
+
+  console.log(`[Chat Modification] Moved event ${eventId} to ${newSlot.dayOfWeek} at ${newSlot.startTime}`)
+  return { action: 'move', success: true, eventId }
+}
+
+// =============================================================================
+// HELPER: Apply Delete Modification
+// =============================================================================
+
+async function applyDeleteModification(
+  supabase: ReturnType<typeof createClient> extends Promise<infer T> ? T : never,
+  userId: string,
+  weekStart: string,
+  eventId: string
+): Promise<ModificationResult> {
+  // Load current schedule
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: schedule, error: loadError } = await (supabase as any)
+    .from('generated_schedules')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('week_start', weekStart)
+    .single()
+
+  if (loadError || !schedule) {
+    return { action: 'delete', success: false, eventId, error: 'Schedule not found' }
+  }
+
+  const events = schedule.events as ScheduleEventWithFlexibility[]
+  const eventIndex = events.findIndex(e => e.id === eventId)
+
+  if (eventIndex === -1) {
+    return { action: 'delete', success: false, eventId, error: 'Event not found' }
+  }
+
+  // Check if event is locked
+  if (events[eventIndex].isLocked) {
+    return { action: 'delete', success: false, eventId, error: 'Cannot delete locked events' }
+  }
+
+  // Remove the event
+  events.splice(eventIndex, 1)
+
+  // Save back to database
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: saveError } = await (supabase as any)
+    .from('generated_schedules')
+    .update({
+      events,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', schedule.id)
+
+  if (saveError) {
+    console.error('Failed to save schedule:', saveError)
+    return { action: 'delete', success: false, eventId, error: 'Failed to save schedule' }
+  }
+
+  console.log(`[Chat Modification] Deleted event ${eventId}`)
+  return { action: 'delete', success: true, eventId }
+}
+
+// =============================================================================
+// HELPER: Apply Feedback
+// =============================================================================
+
+async function applyFeedback(
+  supabase: ReturnType<typeof createClient> extends Promise<infer T> ? T : never,
+  userId: string,
+  feedback: string
+): Promise<ModificationResult> {
+  // Store feedback in schedule_feedback table
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from('schedule_feedback')
+    .insert({
+      user_id: userId,
+      feedback_type: 'general',
+      preference_value: feedback,
+      source: 'chat',
+      is_active: true,
+    })
+
+  if (error) {
+    console.error('Failed to save feedback:', error)
+    return { action: 'feedback', success: false, error: 'Failed to save preference' }
+  }
+
+  console.log(`[Chat Feedback] Stored feedback for user ${userId}: ${feedback}`)
+  return { action: 'feedback', success: true }
+}
+
+// =============================================================================
+// HELPER: Apply Modification
+// =============================================================================
+
+async function applyModification(
+  supabase: ReturnType<typeof createClient> extends Promise<infer T> ? T : never,
+  userId: string,
+  weekStart: string,
+  modification: ScheduleModification
+): Promise<ModificationResult | null> {
+  switch (modification.action) {
+    case 'move':
+      if (!modification.eventId || !modification.newSlot) {
+        return { action: 'move', success: false, error: 'Invalid move data' }
+      }
+      return applyMoveModification(supabase, userId, weekStart, modification.eventId, modification.newSlot)
+
+    case 'delete':
+      if (!modification.eventId) {
+        return { action: 'delete', success: false, error: 'Invalid delete data' }
+      }
+      return applyDeleteModification(supabase, userId, weekStart, modification.eventId)
+
+    case 'feedback':
+      if (!modification.feedback) {
+        return { action: 'feedback', success: false, error: 'Invalid feedback data' }
+      }
+      return applyFeedback(supabase, userId, modification.feedback)
+
+    case 'none':
+    default:
+      return null
+  }
+}
+
+// =============================================================================
+// API HANDLER
+// =============================================================================
 
 export async function POST(request: Request) {
   try {
@@ -86,11 +323,17 @@ export async function POST(request: Request) {
       }, { status: 503 })
     }
 
-    // 6. Get provider and conversation
+    // 6. Load current schedule for context
+    const schedule = await loadSchedule(supabase, user.id, weekStart)
+
+    // 7. Build system prompt with schedule context
+    const systemPrompt = buildScheduleSystemPrompt(schedule || [])
+
+    // 8. Get provider and conversation
     const provider = await getLLMProvider(routerContext)
     const conversation = await getOrCreateConversation(supabase, user.id, weekStart)
 
-    // 7. Add user message
+    // 9. Add user message
     const userMessage: StoredMessage = {
       role: 'user',
       content: message,
@@ -98,19 +341,28 @@ export async function POST(request: Request) {
     }
     await addMessage(supabase, conversation.id, userMessage)
 
-    // 8. Build prompt with conversation history
-    const messages = toPromptMessages([...conversation.messages, userMessage], SYSTEM_PROMPT)
+    // 10. Build prompt with conversation history
+    const messages = toPromptMessages([...conversation.messages, userMessage], systemPrompt)
 
-    // 9. Call LLM
+    // 11. Call LLM
     const response = await provider.chat(messages, { maxTokens: 500 })
 
-    // 10. If API fallback was used, increment usage
+    // 12. If API fallback was used, increment usage
     const usedApiFallback = provider.getName() === 'openai-api'
     if (usedApiFallback) {
       await incrementApiUsage(supabase, user.id)
     }
 
-    // 11. Save assistant response
+    // 13. Parse response for modifications
+    const modification = parseModificationFromResponse(response.content)
+    let modificationResult: ModificationResult | null = null
+
+    // 14. Apply modification if found
+    if (modification) {
+      modificationResult = await applyModification(supabase, user.id, weekStart, modification)
+    }
+
+    // 15. Save assistant response
     const assistantMessage: StoredMessage = {
       role: 'assistant',
       content: response.content,
@@ -118,10 +370,14 @@ export async function POST(request: Request) {
     }
     await addMessage(supabase, conversation.id, assistantMessage)
 
-    // 12. Return response with usage info if API was used
+    // 16. Extract clean text for display (without JSON blocks)
+    const displayMessage = extractTextWithoutJson(response.content)
+
+    // 17. Return response with usage info and modification result
     return NextResponse.json({
-      message: response.content,
+      message: displayMessage,
       provider: response.provider,
+      ...(modificationResult && { modification: modificationResult }),
       ...(usedApiFallback && {
         apiUsage: {
           used: usage.used + 1,
@@ -133,6 +389,7 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('Chat error:', error)
+    // Sanitize error - don't expose internal details
     return NextResponse.json(
       { error: 'Failed to process chat message' },
       { status: 500 }
