@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 8 — LLM Gateway
+**Current focus:** Phase 9 — Settings & Billing
 
 ## Current Position
 
-Phase: 8 of 10 (LLM Gateway)
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-01-23 — Completed 08-04-PLAN.md (Cost Control)
+Phase: 9 of 10 (Settings & Billing)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-01-24 — Completed 09-01-PLAN.md (Settings Foundation)
 
 Progress: ████████████████████████████░░ 93%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 28
 - Average duration: 6 min
-- Total execution time: 2.5 hours
+- Total execution time: 2.6 hours
 
 **By Phase:**
 
@@ -35,10 +35,11 @@ Progress: ███████████████████████�
 | 6 | 6/6 | 54 min | 9 min |
 | 7 | 3/3 | 20 min | 7 min |
 | 8 | 4/4 | 18 min | 4.5 min |
+| 9 | 1/4 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-03 (6 min), 08-01 (3 min), 08-03 (4 min), 08-02 (6 min), 08-04 (5 min)
-- Trend: Phase 8 complete - LLM Gateway fully implemented with cost controls
+- Last 5 plans: 08-01 (3 min), 08-03 (4 min), 08-02 (6 min), 08-04 (5 min), 09-01 (4 min)
+- Trend: Phase 9 started - Settings & Billing foundation laid
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -134,6 +135,9 @@ Recent decisions affecting current work:
 - (llm-08) checkCombinedBudget() for pre-flight budget checks
 - (llm-08) X-Token-Usage response header for client-side tracking
 - (llm-08) 429 response with type field (daily_limit | session_limit)
+- (billing) Stripe env vars optional for dev flexibility
+- (billing) Usage limits with defaults (200 generations, 500 recalibrations)
+- (settings) Tab navigation: Preferences | Goals | Account | Subscription
 
 ### Pending Todos
 
@@ -145,7 +149,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-23
-Stopped at: Completed 08-04-PLAN.md (Cost Control)
+Last session: 2026-01-24
+Stopped at: Completed 09-01-PLAN.md (Settings Foundation)
 Resume file: None
-Next: 09-01-PLAN.md (Settings Page)
+Next: 09-02-PLAN.md (Stripe Integration)

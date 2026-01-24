@@ -171,9 +171,10 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 09-01: Settings page (constraints, account)
+- [x] 09-01: Settings page foundation (billing tables, account section)
 - [ ] 09-02: Stripe integration with webhook verification
 - [ ] 09-03: Usage tracking and trial logic
+- [ ] 09-04: Subscription management UI
 
 ### Phase 10: Hardening & Launch
 **Goal**: Landing page, weekly review feature, and final security audit
@@ -205,7 +206,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6.5. Schedule Chat | 3/3 | Complete | 2026-01-23 |
 | 7. Goals & Preferences | 3/3 | Complete | 2026-01-23 |
 | 8. LLM Gateway | 4/4 | Complete | 2026-01-23 |
-| 9. Settings & Billing | 0/3 | Not started | - |
+| 9. Settings & Billing | 1/4 | In progress | - |
 | 10. Hardening & Launch | 0/4 | Not started | - |
 
 ## Notes
