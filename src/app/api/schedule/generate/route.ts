@@ -1,5 +1,6 @@
 // Schedule generation API endpoint
 // Phase 5: Scheduling Engine - Plan 03
+// Phase 9: Settings & Billing - Plan 03 (usage tracking integration)
 // POST /api/schedule/generate
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -7,6 +8,13 @@ import { createClient } from '@/lib/supabase/server'
 import { generateSchedule } from '@/lib/scheduling/engine'
 import { detectInfeasibility } from '@/lib/scheduling/infeasibility'
 import { addFlexibilityToSchedule } from '@/lib/scheduling/flexibility'
+import {
+  checkCanGenerate,
+  checkCanRecalibrate,
+  incrementGenerations,
+  incrementRecalibrations,
+  getUsage,
+} from '@/lib/services/usage-service'
 import {
   GoalWithMetadata,
   SchedulerInput,
@@ -160,7 +168,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Parse request body
+    // 2. Parse request body to determine if this is a recalibration
     let body: GenerateScheduleRequest = {}
     try {
       body = await request.json()
@@ -168,6 +176,58 @@ export async function POST(request: NextRequest) {
       // Empty body is valid
     }
     const { weekStart: weekStartStr, scope, feedback, previousWeekSchedule, customWeights } = body
+
+    // Check if this is a recalibration (has feedback or scope)
+    const isRecalibration = !!(feedback || scope)
+
+    // 2.5. Check usage limits before generating
+    if (isRecalibration) {
+      const canRecalibrate = await checkCanRecalibrate(user.id)
+      if (!canRecalibrate) {
+        const usage = await getUsage(user.id)
+        return NextResponse.json({
+          error: 'Recalibration limit reached',
+          type: 'limit_exceeded',
+          usage: usage?.recalibrations,
+        }, { status: 429 })
+      }
+    } else {
+      const canGenerate = await checkCanGenerate(user.id)
+      if (!canGenerate) {
+        const usage = await getUsage(user.id)
+        return NextResponse.json({
+          error: 'Schedule generation limit reached',
+          type: 'limit_exceeded',
+          usage: usage?.generations,
+        }, { status: 429 })
+      }
+    }
+
+    // 2.6. Handle trial activation - start trial on first generation
+    // Check if user has 'inactive' subscription status and start trial
+    const { data: subscriptionData } = await (supabase as any)
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!subscriptionData || subscriptionData.status === 'inactive') {
+      // Start trial on first schedule generation
+      const now = new Date()
+      const trialEnd = new Date(now)
+      trialEnd.setDate(trialEnd.getDate() + 30) // 30 day trial
+
+      await (supabase as any)
+        .from('subscriptions')
+        .upsert({
+          user_id: user.id,
+          status: 'trialing',
+          trial_start: now.toISOString(),
+          trial_end: trialEnd.toISOString(),
+        }, {
+          onConflict: 'user_id',
+        })
+    }
 
     // 3. Load user data from Supabase
     const [preferencesResult, commitmentsResult, goalsResult] = await Promise.all([
@@ -268,7 +328,14 @@ export async function POST(request: NextRequest) {
       // Continue anyway - schedule generation succeeded
     }
 
-    // 10. Return success
+    // 10. Track usage after successful generation
+    if (isRecalibration) {
+      await incrementRecalibrations(user.id)
+    } else {
+      await incrementGenerations(user.id)
+    }
+
+    // 11. Return success
     return NextResponse.json({
       schedule: scheduleWithFlexibility,
       stats: result.stats,
