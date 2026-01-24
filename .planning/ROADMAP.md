@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6.5: Schedule Chat** - LLM-powered schedule refinement via conversation (INSERTED)
 - [x] **Phase 7: Goals & Preferences** - Goals management and preference system
 - [x] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
-- [ ] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
+- [x] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
 - [ ] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
 
 ## Phase Details
@@ -174,7 +174,6 @@ Plans:
 - [x] 09-01: Settings page foundation (billing tables, account section)
 - [x] 09-02: Stripe integration with webhook verification
 - [x] 09-03: Usage tracking and trial logic
-- [ ] 09-04: Subscription management UI
 
 ### Phase 10: Hardening & Launch
 **Goal**: Landing page, weekly review feature, and final security audit
@@ -206,7 +205,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6.5. Schedule Chat | 3/3 | Complete | 2026-01-23 |
 | 7. Goals & Preferences | 3/3 | Complete | 2026-01-23 |
 | 8. LLM Gateway | 4/4 | Complete | 2026-01-23 |
-| 9. Settings & Billing | 3/4 | In progress | - |
+| 9. Settings & Billing | 3/3 | Complete | 2026-01-24 |
 | 10. Hardening & Launch | 0/4 | Not started | - |
 
 ## Notes
