@@ -93,14 +93,15 @@ export default async function AccountPage() {
                 Account
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              className="rounded-b-none border-b-2 border-transparent text-muted-foreground"
-              disabled
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Subscription
-            </Button>
+            <Link href="/settings/subscription">
+              <Button
+                variant="ghost"
+                className="rounded-b-none border-b-2 border-transparent text-muted-foreground hover:text-foreground"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Subscription
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

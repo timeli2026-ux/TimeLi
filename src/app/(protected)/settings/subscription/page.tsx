@@ -1,15 +1,54 @@
-'use client'
-
 import Link from 'next/link'
-import { Settings, Target, User, CreditCard, ArrowLeft, Info } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { Settings, Target, User, CreditCard, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PreferencesPanel } from '@/components/preferences/preferences-panel'
+import { SubscriptionSection } from '@/components/settings/subscription-section'
+import { createClient } from '@/lib/supabase/server'
+
+// =============================================================================
+// DATA FETCHING
+// =============================================================================
+
+interface SubscriptionData {
+  status: 'inactive' | 'trialing' | 'active' | 'canceled' | 'past_due'
+  trialEnd: string | null
+  currentPeriodEnd: string | null
+  cancelAtPeriodEnd: boolean
+  priceCents: number
+}
+
+async function getSubscriptionData(): Promise<SubscriptionData> {
+  const supabase = await createClient()
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    redirect('/login')
+  }
+
+  // Get subscription data
+  const { data: subscription } = await (supabase as any)
+    .from('subscriptions')
+    .select('status, trial_end, current_period_end, cancel_at_period_end, price_cents')
+    .eq('user_id', user.id)
+    .single()
+
+  return {
+    status: subscription?.status || 'inactive',
+    trialEnd: subscription?.trial_end || null,
+    currentPeriodEnd: subscription?.current_period_end || null,
+    cancelAtPeriodEnd: subscription?.cancel_at_period_end || false,
+    priceCents: subscription?.price_cents || 1500,
+  }
+}
 
 // =============================================================================
 // PAGE COMPONENT
 // =============================================================================
 
-export default function PreferencesPage() {
+export default async function SubscriptionPage() {
+  const subscriptionData = await getSubscriptionData()
+
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
@@ -27,11 +66,11 @@ export default function PreferencesPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold flex items-center gap-2">
-                <Settings className="h-6 w-6" />
-                Schedule Preferences
+                <CreditCard className="h-6 w-6" />
+                Subscription
               </h1>
               <p className="text-muted-foreground mt-1">
-                Customize how your week is scheduled
+                Manage your subscription and billing
               </p>
             </div>
           </div>
@@ -41,7 +80,7 @@ export default function PreferencesPage() {
             <Link href="/settings/preferences">
               <Button
                 variant="ghost"
-                className="rounded-b-none border-b-2 border-primary text-foreground"
+                className="rounded-b-none border-b-2 border-transparent text-muted-foreground hover:text-foreground"
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Preferences
@@ -68,7 +107,7 @@ export default function PreferencesPage() {
             <Link href="/settings/subscription">
               <Button
                 variant="ghost"
-                className="rounded-b-none border-b-2 border-transparent text-muted-foreground hover:text-foreground"
+                className="rounded-b-none border-b-2 border-primary text-foreground"
               >
                 <CreditCard className="h-4 w-4 mr-2" />
                 Subscription
@@ -81,20 +120,13 @@ export default function PreferencesPage() {
       {/* Main Content */}
       <div className="flex-1 container py-6">
         <div className="max-w-2xl mx-auto">
-          {/* Info Banner */}
-          <div className="flex items-start gap-3 p-4 mb-6 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-800 dark:text-blue-200">
-              <p className="font-medium">About Preferences</p>
-              <p className="mt-1">
-                Changes to preferences will affect future schedule generations.
-                Your current weekly schedule will not be modified.
-              </p>
-            </div>
-          </div>
-
-          {/* Preferences Form Panel */}
-          <PreferencesPanel />
+          <SubscriptionSection
+            status={subscriptionData.status}
+            trialEnd={subscriptionData.trialEnd}
+            currentPeriodEnd={subscriptionData.currentPeriodEnd}
+            cancelAtPeriodEnd={subscriptionData.cancelAtPeriodEnd}
+            priceCents={subscriptionData.priceCents}
+          />
         </div>
       </div>
     </div>
