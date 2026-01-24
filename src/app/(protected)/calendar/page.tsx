@@ -9,6 +9,7 @@ import { CompletionModal, type CompletionStatus } from '@/components/calendar/co
 import { RecalibrateDialog, type RecalibrateScope } from '@/components/calendar/recalibrate-dialog'
 import { DashboardSidebar } from '@/components/calendar/dashboard-sidebar'
 import { Chatbox } from '@/components/calendar/chatbox'
+import { UsageIndicator } from '@/components/calendar/usage-indicator'
 import type { ScheduleEventWithFlexibility, TimeSlot, SchedulerStats } from '@/lib/scheduling/types'
 import {
   getWeekStart,
@@ -360,6 +361,9 @@ export default function CalendarPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Usage indicator - shows trial status or usage */}
+            <UsageIndicator />
+
             <Button
               variant="outline"
               size="sm"
