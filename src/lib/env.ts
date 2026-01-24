@@ -21,6 +21,16 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().optional(),    // "gpt-4o-mini" (default)
 
+  // Stripe (optional - billing features disabled without it)
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRICE_ID: z.string().optional(),  // Monthly subscription price ID
+
+  // Usage limits (with defaults)
+  USAGE_LIMIT_GENERATIONS: z.coerce.number().default(200),
+  USAGE_LIMIT_RECALIBRATIONS: z.coerce.number().default(500),
+
   // Node environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
