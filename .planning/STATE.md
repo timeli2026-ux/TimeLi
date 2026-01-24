@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 9 of 10 (Settings & Billing)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 09-02-PLAN.md (Stripe Integration)
+Last activity: 2026-01-24 — Completed 09-03-PLAN.md (Usage Tracking)
 
 Progress: █████████████████████████████░ 97%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
+- Total plans completed: 30
 - Average duration: 6 min
 - Total execution time: 2.7 hours
 
@@ -35,11 +35,11 @@ Progress: ███████████████████████�
 | 6 | 6/6 | 54 min | 9 min |
 | 7 | 3/3 | 20 min | 7 min |
 | 8 | 4/4 | 18 min | 4.5 min |
-| 9 | 2/4 | 12 min | 6 min |
+| 9 | 3/4 | 14 min | 4.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-03 (4 min), 08-02 (6 min), 08-04 (5 min), 09-01 (4 min), 09-02 (8 min)
-- Trend: Stripe integration complete with webhook handling
+- Last 5 plans: 08-04 (5 min), 09-01 (4 min), 09-02 (8 min), 09-03 (2 min)
+- Trend: Usage tracking complete with trial activation
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -142,6 +142,10 @@ Recent decisions affecting current work:
 - (stripe) Period dates from subscription items (new API structure)
 - (stripe) Webhook signature verification (SEC-12)
 - (stripe) Graceful degradation when not configured
+- (usage) Trial starts on first schedule generation (BILL-03)
+- (usage) Fail open on usage tracking errors
+- (usage) Inactive/trialing users have unlimited access
+- (usage) Color-coded usage indicator (green <50%, yellow 50-80%, red >80%)
 
 ### Pending Todos
 
@@ -154,6 +158,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 09-02-PLAN.md (Stripe Integration)
+Stopped at: Completed 09-03-PLAN.md (Usage Tracking)
 Resume file: None
-Next: 09-03-PLAN.md (Usage Tracking)
+Next: 09-04-PLAN.md (Subscription Management UI)
