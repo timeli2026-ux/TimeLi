@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 11 of 17 (Database & Models)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-25 — Completed 11-01-PLAN.md
+Phase: 11 of 17 (Database & Models) - COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-01-25 — Completed 11-02-PLAN.md
 
-Progress: ███████████████████░ 95%
+Progress: ████████████████████ 100% (Phase 11)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 38
-- Average duration: 5.0 min
-- Total execution time: 3.0 hours
+- Total plans completed: 39
+- Average duration: 4.9 min
+- Total execution time: 3.1 hours
 
 **By Phase:**
 
@@ -37,10 +37,10 @@ Progress: ███████████████████░ 95%
 | 8 | 4/4 | 18 min | 4.5 min |
 | 9 | 3/3 | 14 min | 4.7 min |
 | 10 | 4/4 | 11 min | 2.8 min |
-| 11 | 1/2 | 3 min | 3 min |
+| 11 | 2/2 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 10-03 (3 min), 10-04 (2 min), 11-01 (3 min)
+- Last 5 plans: 10-04 (2 min), 11-01 (3 min), 11-02 (4 min)
 - Trend: Fast completion continues
 
 ## Major Revision: CALENDAR_REVISION.md
@@ -67,6 +67,8 @@ Recent decisions affecting current work:
 - (security) All 16 SEC requirements verified and passed
 - (security) 59/59 v1 requirements complete (100%)
 - (llm) Simplified to Anthropic-only for MVP - removed self-hosted/OpenAI complexity
+- (database) assignments.course_id nullable: Allows standalone assignments not tied to a course
+- (api) Status transitions auto-update completed_at timestamp
 
 ### Pending Todos
 
@@ -87,5 +89,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 11-01-PLAN.md
+Stopped at: Completed 11-02-PLAN.md (Phase 11 complete)
 Resume file: None
