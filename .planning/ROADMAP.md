@@ -211,7 +211,7 @@ Plans:
 **Plans**: 3
 
 Plans:
-- [ ] 11-01: Simplify LLM to Anthropic-only (remove self-hosted/OpenAI complexity)
+- [x] 11-01: Simplify LLM to Anthropic-only (remove self-hosted/OpenAI complexity)
 - [ ] 11-02: Test LLM endpoints with real API (user setup: ANTHROPIC_API_KEY)
 - [ ] 11-03: Audit adaptation capabilities (feedback, preferences, patterns)
 
@@ -261,7 +261,7 @@ Phases execute in numeric order: 1 → 2 → ... → 10 → 11 → 12 → 13 →
 | 8. LLM Gateway | v1.0 | 4/4 | Complete | 2026-01-23 |
 | 9. Settings & Billing | v1.0 | 3/3 | Complete | 2026-01-24 |
 | 10. Hardening & Launch | v1.0 | 4/4 | Complete | 2026-01-25 |
-| 11. LLM Gateway Activation & Exploration | v1.1 | 0/? | Not started | - |
+| 11. LLM Gateway Activation & Exploration | v1.1 | 1/3 | In progress | - |
 | 12. Scheduling Engine Validation | v1.1 | 0/? | Not started | - |
 | 13. Chat & Adaptation | v1.1 | 0/? | Not started | - |
 | 14. Polish & Cost Optimization | v1.1 | 0/? | Not started | - |
