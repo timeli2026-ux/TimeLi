@@ -21,7 +21,7 @@ export async function GET() {
     // Using (supabase as any) until types are regenerated
     const { data: realms, error: realmsError } = await (supabase as any)
       .from('life_realms')
-      .select('id, name, icon, description')
+      .select('id, name, icon')
       .eq('user_id', user.id)
       .order('name', { ascending: true })
 
