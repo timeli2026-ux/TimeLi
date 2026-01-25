@@ -215,17 +215,15 @@ Plans:
 
 Plans:
 - [x] 11-01: Courses table and CRUD API
-- [ ] 11-02: Assignments table and CRUD API
+- [x] 11-02: Assignments table and CRUD API
 
 #### Phase 12: Syllabus Import
 **Goal**: Build LLM-powered syllabus parsing endpoint that extracts assignments with due dates and estimated hours
 **Depends on**: Phase 11
-**Research**: Likely (LLM parsing, prompt engineering for extraction)
-**Research topics**: Claude structured extraction, assignment hour estimation heuristics
-**Plans**: TBD
+**Research**: Unlikely (LLM patterns established in Phase 8)
 
 Plans:
-- [ ] 12-01: TBD
+- [ ] 12-01: Syllabus parser prompt and API endpoint
 
 #### Phase 13: New Onboarding
 **Goal**: Replace 8-step onboarding with streamlined 4-step wizard (Basics, Classes, Assignments, Generate)
@@ -291,8 +289,8 @@ Phases execute in numeric order: 1 → 2 → ... → 10 → 11 → 12 → 13 →
 | 8. LLM Gateway | v1.0 | 4/4 | Complete | 2026-01-23 |
 | 9. Settings & Billing | v1.0 | 3/3 | Complete | 2026-01-24 |
 | 10. Hardening & Launch | v1.0 | 4/4 | Complete | 2026-01-25 |
-| 11. Database & Models | v2.0 | 1/2 | In progress | - |
-| 12. Syllabus Import | v2.0 | 0/? | Not started | - |
+| 11. Database & Models | v2.0 | 2/2 | Complete | 2026-01-25 |
+| 12. Syllabus Import | v2.0 | 0/1 | Not started | - |
 | 13. New Onboarding | v2.0 | 0/? | Not started | - |
 | 14. Scheduling Engine Refactor | v2.0 | 0/? | Not started | - |
 | 15. Semester Timeline | v2.0 | 0/? | Not started | - |
