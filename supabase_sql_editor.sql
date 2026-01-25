@@ -22,6 +22,8 @@
 -- - schedule_feedback table (user preferences from chat)
 -- - schedule_conversations table (chat history with LLM)
 -- - api_usage table (daily API rate limiting for OpenAI fallback)
+-- - subscriptions table (Stripe subscription tracking)
+-- - usage_tracking table (billing period usage limits)
 -- =============================================================================
 
 -- =============================================================================
@@ -282,6 +284,83 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE INDEX idx_api_usage_user_date ON public.api_usage(user_id, date);
 
 -- =============================================================================
+-- TABLE: subscriptions (BILLING)
+-- =============================================================================
+-- Tracks Stripe subscription status for each user
+
+DROP TABLE IF EXISTS public.subscriptions CASCADE;
+
+CREATE TABLE public.subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT,
+  status TEXT NOT NULL DEFAULT 'inactive',
+  plan TEXT NOT NULL DEFAULT 'monthly',
+  price_cents INTEGER NOT NULL DEFAULT 1500,
+  trial_start TIMESTAMPTZ,
+  trial_end TIMESTAMPTZ,
+  current_period_start TIMESTAMPTZ,
+  current_period_end TIMESTAMPTZ,
+  cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own subscription"
+  ON public.subscriptions FOR SELECT
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can insert own subscription"
+  ON public.subscriptions FOR INSERT
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can update own subscription"
+  ON public.subscriptions FOR UPDATE
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE INDEX idx_subscriptions_stripe_customer ON public.subscriptions(stripe_customer_id);
+CREATE INDEX idx_subscriptions_stripe_subscription ON public.subscriptions(stripe_subscription_id);
+
+-- =============================================================================
+-- TABLE: usage_tracking (BILLING)
+-- =============================================================================
+-- Tracks feature usage per billing period for limit enforcement
+
+DROP TABLE IF EXISTS public.usage_tracking CASCADE;
+
+CREATE TABLE public.usage_tracking (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  period_start DATE NOT NULL,
+  period_end DATE NOT NULL,
+  schedule_generations INTEGER NOT NULL DEFAULT 0,
+  recalibrations INTEGER NOT NULL DEFAULT 0,
+  llm_requests INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, period_start)
+);
+
+ALTER TABLE public.usage_tracking ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own usage tracking"
+  ON public.usage_tracking FOR SELECT
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can insert own usage tracking"
+  ON public.usage_tracking FOR INSERT
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can update own usage tracking"
+  ON public.usage_tracking FOR UPDATE
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE INDEX idx_usage_tracking_user_period ON public.usage_tracking(user_id, period_start);
+
+-- =============================================================================
 -- SCHEMA RELOAD
 -- =============================================================================
 
@@ -298,6 +377,8 @@ NOTIFY pgrst, 'reload schema';
 -- - schedule_feedback
 -- - schedule_conversations
 -- - api_usage
+-- - subscriptions (NEW - for Stripe billing)
+-- - usage_tracking (NEW - for billing period limits)
 --
 -- You can verify by running:
 -- SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';

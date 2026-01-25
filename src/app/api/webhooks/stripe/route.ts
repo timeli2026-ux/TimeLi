@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 import Stripe from 'stripe'
 import { stripe, syncSubscriptionStatus } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { env } from '@/lib/env'
 
 // =============================================================================
@@ -96,6 +97,10 @@ export async function POST(request: Request) {
         console.log('Unhandled event type:', event.type)
     }
 
+    // Revalidate subscription page cache after any subscription-related event
+    revalidatePath('/settings/subscription')
+    revalidatePath('/(protected)/settings/subscription')
+
     return NextResponse.json({ received: true })
   } catch (error) {
     console.error('Webhook handler error:', error)
@@ -138,7 +143,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
   console.log('Subscription created:', subscription.id)
 
-  const supabase = await createClient()
+  // Use service role client to bypass RLS (webhook has no user context)
+  const supabase = createServiceRoleClient()
 
   // Get period dates from first subscription item
   const firstItem = subscription.items.data[0]
@@ -191,7 +197,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   console.log('Subscription deleted:', subscription.id)
 
-  const supabase = await createClient()
+  // Use service role client to bypass RLS (webhook has no user context)
+  const supabase = createServiceRoleClient()
 
   const { error } = await (supabase as any)
     .from('subscriptions')
@@ -245,7 +252,8 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   console.log('Invoice payment failed for subscription:', subscriptionId)
 
-  const supabase = await createClient()
+  // Use service role client to bypass RLS (webhook has no user context)
+  const supabase = createServiceRoleClient()
 
   const { error } = await (supabase as any)
     .from('subscriptions')

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { CreditCard, Loader2, CheckCircle2, XCircle, AlertCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -90,24 +90,91 @@ function getStatusBadge(status: string, cancelAtPeriodEnd: boolean) {
 // =============================================================================
 
 export function SubscriptionSection({
-  status,
-  trialEnd,
-  currentPeriodEnd,
-  cancelAtPeriodEnd,
-  priceCents,
+  status: initialStatus,
+  trialEnd: initialTrialEnd,
+  currentPeriodEnd: initialCurrentPeriodEnd,
+  cancelAtPeriodEnd: initialCancelAtPeriodEnd,
+  priceCents: initialPriceCents,
 }: SubscriptionSectionProps) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [stripeConfigured, setStripeConfigured] = useState(true)
+  const [isPolling, setIsPolling] = useState(false)
 
-  // Show toast on success/cancel from Stripe redirect
+  // Use state for subscription data to allow updates from polling
+  const [subscriptionData, setSubscriptionData] = useState({
+    status: initialStatus,
+    trialEnd: initialTrialEnd,
+    currentPeriodEnd: initialCurrentPeriodEnd,
+    cancelAtPeriodEnd: initialCancelAtPeriodEnd,
+    priceCents: initialPriceCents,
+  })
+
+  const { status, trialEnd, currentPeriodEnd, cancelAtPeriodEnd, priceCents } = subscriptionData
+
+  // Poll for subscription status updates
+  const pollSubscriptionStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/billing/status')
+      if (!response.ok) return null
+      return await response.json()
+    } catch {
+      return null
+    }
+  }, [])
+
+  // Handle success/cancel from Stripe redirect with polling
   useEffect(() => {
+    if (searchParams.get('canceled') === 'true') {
+      toast.info('Checkout was canceled')
+      return
+    }
+
     if (searchParams.get('success') === 'true') {
       toast.success('Subscription started successfully!')
-    } else if (searchParams.get('canceled') === 'true') {
-      toast.info('Checkout was canceled')
+
+      // If status is still inactive, poll for the update
+      if (initialStatus === 'inactive') {
+        setIsPolling(true)
+        let pollCount = 0
+        const maxPolls = 10 // Poll for up to 10 seconds
+
+        const pollInterval = setInterval(async () => {
+          pollCount++
+          const data = await pollSubscriptionStatus()
+
+          if (data && data.status !== 'inactive') {
+            // Subscription updated! Update local state
+            setSubscriptionData({
+              status: data.status,
+              trialEnd: data.trialEnd,
+              currentPeriodEnd: data.currentPeriodEnd,
+              cancelAtPeriodEnd: data.cancelAtPeriodEnd,
+              priceCents: data.priceCents,
+            })
+            setIsPolling(false)
+            clearInterval(pollInterval)
+
+            // Also trigger a router refresh to update server state
+            router.refresh()
+
+            // Clear the success param from URL
+            const url = new URL(window.location.href)
+            url.searchParams.delete('success')
+            window.history.replaceState({}, '', url.toString())
+          } else if (pollCount >= maxPolls) {
+            // Stop polling after max attempts
+            setIsPolling(false)
+            clearInterval(pollInterval)
+            toast.info('Subscription is being processed. Please refresh the page in a moment.')
+          }
+        }, 1000)
+
+        return () => clearInterval(pollInterval)
+      }
     }
-  }, [searchParams])
+  }, [searchParams, initialStatus, pollSubscriptionStatus, router])
 
   // Check if Stripe is configured by attempting a request
   useEffect(() => {
@@ -211,44 +278,59 @@ export function SubscriptionSection({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Inactive - Show Start Trial */}
+          {/* Inactive - Show Start Trial or Polling State */}
           {status === 'inactive' && (
             <div className="space-y-4">
-              <div>
-                <h3 className="font-medium">Start Your Free Trial</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Get 30 days free, then {formatPrice(priceCents)}/month.
-                  Cancel anytime.
-                </p>
-              </div>
-              <ul className="text-sm space-y-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  Unlimited schedule generations
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  AI-powered schedule optimization
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  Chat-based schedule refinement
-                </li>
-              </ul>
-              <Button
-                onClick={handleStartTrial}
-                disabled={isLoading}
-                className="w-full sm:w-auto"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Redirecting...
-                  </>
-                ) : (
-                  'Start Free Trial'
-                )}
-              </Button>
+              {isPolling ? (
+                // Show loading state while polling for subscription update
+                <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <div className="text-center">
+                    <h3 className="font-medium">Activating your subscription...</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Please wait while we confirm your payment.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <h3 className="font-medium">Start Your Free Trial</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Get 30 days free, then {formatPrice(priceCents)}/month.
+                      Cancel anytime.
+                    </p>
+                  </div>
+                  <ul className="text-sm space-y-2">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      Unlimited schedule generations
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      AI-powered schedule optimization
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      Chat-based schedule refinement
+                    </li>
+                  </ul>
+                  <Button
+                    onClick={handleStartTrial}
+                    disabled={isLoading}
+                    className="w-full sm:w-auto"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : (
+                      'Start Free Trial'
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
           )}
 

@@ -1,7 +1,7 @@
 import 'server-only'
 
 import Stripe from 'stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { env } from '@/lib/env'
 
 // =============================================================================
@@ -150,6 +150,7 @@ export async function createPortalSession(
 
 /**
  * Sync subscription status from Stripe to local database.
+ * Uses service role client to bypass RLS (called from webhooks without user context).
  */
 export async function syncSubscriptionStatus(
   subscriptionId: string
@@ -164,7 +165,12 @@ export async function syncSubscriptionStatus(
     expand: ['items.data'],
   })
 
-  const supabase = await createClient()
+  const customerId = typeof subscription.customer === 'string'
+    ? subscription.customer
+    : subscription.customer.id
+
+  // Use service role client to bypass RLS (webhook has no user context)
+  const supabase = createServiceRoleClient()
 
   // Map Stripe status to our status
   let status: 'inactive' | 'trialing' | 'active' | 'canceled' | 'past_due' = 'inactive'
@@ -192,8 +198,8 @@ export async function syncSubscriptionStatus(
   const currentPeriodStart = firstItem?.current_period_start
   const currentPeriodEnd = firstItem?.current_period_end
 
-  // Update subscription record
-  await (supabase as any)
+  // Update subscription record by customer ID (since subscription ID may not be set yet on first sync)
+  const { error } = await (supabase as any)
     .from('subscriptions')
     .update({
       stripe_subscription_id: subscription.id,
@@ -212,7 +218,11 @@ export async function syncSubscriptionStatus(
         : null,
       cancel_at_period_end: subscription.cancel_at_period_end,
     })
-    .eq('stripe_subscription_id', subscription.id)
+    .eq('stripe_customer_id', customerId)
+
+  if (error) {
+    console.error('Error syncing subscription status:', error)
+  }
 }
 
 // =============================================================================
