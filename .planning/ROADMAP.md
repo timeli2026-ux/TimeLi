@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
 - [x] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
 - [ ] **Phase 11: Database & Models** - courses/assignments tables, CRUD APIs, RLS
-- [ ] **Phase 12: Syllabus Import** - LLM parsing endpoint, hour estimation
+- [x] **Phase 12: Syllabus Import** - LLM parsing endpoint, hour estimation
 - [ ] **Phase 13: New Onboarding** - 4-step wizard replacing current 8-step
 - [ ] **Phase 14: Scheduling Engine Refactor** - Deadline-based inputs, backward scheduling, semester-wide
 - [ ] **Phase 15: Semester Timeline** - Week-column view, due date markers, heat coloring
@@ -223,7 +223,7 @@ Plans:
 **Research**: Unlikely (LLM patterns established in Phase 8)
 
 Plans:
-- [ ] 12-01: Syllabus parser prompt and API endpoint
+- [x] 12-01: Syllabus parser prompt and API endpoint
 
 #### Phase 13: New Onboarding
 **Goal**: Replace 8-step onboarding with streamlined 4-step wizard (Basics, Classes, Assignments, Generate)
@@ -290,7 +290,7 @@ Phases execute in numeric order: 1 → 2 → ... → 10 → 11 → 12 → 13 →
 | 9. Settings & Billing | v1.0 | 3/3 | Complete | 2026-01-24 |
 | 10. Hardening & Launch | v1.0 | 4/4 | Complete | 2026-01-25 |
 | 11. Database & Models | v2.0 | 2/2 | Complete | 2026-01-25 |
-| 12. Syllabus Import | v2.0 | 0/1 | Not started | - |
+| 12. Syllabus Import | v2.0 | 1/1 | Complete | 2026-01-25 |
 | 13. New Onboarding | v2.0 | 0/? | Not started | - |
 | 14. Scheduling Engine Refactor | v2.0 | 0/? | Not started | - |
 | 15. Semester Timeline | v2.0 | 0/? | Not started | - |
