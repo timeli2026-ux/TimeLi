@@ -8,6 +8,11 @@ Build an AI-assisted weekly scheduling app with security baked in from day one. 
 
 None
 
+## Milestones
+
+- ✅ **v1.0 MVP** - Phases 1-10 (shipped 2026-01-25)
+- 🚧 **v1.1 Validation & Adaptation** - Phases 11-14 (in progress)
+
 ## Phases
 
 **Phase Numbering:**
@@ -27,6 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
 - [x] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
 - [x] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
+- [ ] **Phase 11: LLM Gateway Activation & Exploration** - API key setup, test calls, audit adaptation capabilities
+- [ ] **Phase 12: Scheduling Engine Validation** - Test hard constraints, allocation quality, rationale
+- [ ] **Phase 13: Chat & Adaptation** - Validate chat refinement, implement memory/adaptation
+- [ ] **Phase 14: Polish & Cost Optimization** - Fix discovered issues, optimize prompts for cost
 
 ## Phase Details
 
@@ -189,24 +198,72 @@ Plans:
 
 **Note**: Basic security headers and rate limiting moved to Phase 3 for early protection.
 
+---
+
+### 🚧 v1.1 Validation & Adaptation (In Progress)
+
+**Milestone Goal:** Validate core AI features work correctly with real API, add adaptive behavior, and polish based on real usage.
+
+#### Phase 11: LLM Gateway Activation & Exploration
+**Goal**: Configure real API key, validate gateway functions with actual Claude API calls, audit existing memory/adaptation capabilities
+**Depends on**: Phase 10 (v1.0 complete)
+**Research**: Likely (testing real API, exploring codebase)
+**Research topics**: Claude API patterns in production, existing adaptation code audit
+**Plans**: TBD
+
+Plans:
+- [ ] 11-01: TBD (run /gsd:plan-phase 11 to break down)
+
+#### Phase 12: Scheduling Engine Validation
+**Goal**: Test that hard constraints are respected, time allocation is smart, and rationale is explainable
+**Depends on**: Phase 11
+**Research**: Unlikely (testing existing code)
+**Plans**: TBD
+
+Plans:
+- [ ] 12-01: TBD
+
+#### Phase 13: Chat & Adaptation
+**Goal**: Validate chat refinement works correctly, implement memory/adaptation features as needed
+**Depends on**: Phase 12
+**Research**: Likely (may need new features based on exploration)
+**Research topics**: Schedule evolution patterns, user pattern learning approaches
+**Plans**: TBD
+
+Plans:
+- [ ] 13-01: TBD
+
+#### Phase 14: Polish & Cost Optimization
+**Goal**: Fix rough edges discovered during validation, optimize LLM prompts for cost efficiency
+**Depends on**: Phase 13
+**Research**: Unlikely (internal refinement)
+**Plans**: TBD
+
+Plans:
+- [ ] 14-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 → 2 → ... → 10 → 11 → 12 → 13 → 14
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation & Security Base | 3/3 | Complete | 2026-01-15 |
-| 2. Auth & Session Security | 3/3 | Complete | 2026-01-16 |
-| 3. Database & RLS | 3/3 | Complete | 2026-01-16 |
-| 4. Onboarding Flow | 3/3 | Complete | 2026-01-16 |
-| 5. Scheduling Engine | 3/3 | Complete | 2026-01-17 |
-| 6. Calendar UI | 6/6 | Complete | 2026-01-18 |
-| 6.5. Schedule Chat | 3/3 | Complete | 2026-01-23 |
-| 7. Goals & Preferences | 3/3 | Complete | 2026-01-23 |
-| 8. LLM Gateway | 4/4 | Complete | 2026-01-23 |
-| 9. Settings & Billing | 3/3 | Complete | 2026-01-24 |
-| 10. Hardening & Launch | 4/4 | Complete | 2026-01-25 |
+| Phase | Milestone | Plans | Status | Completed |
+|-------|-----------|-------|--------|-----------|
+| 1. Foundation & Security Base | v1.0 | 3/3 | Complete | 2026-01-15 |
+| 2. Auth & Session Security | v1.0 | 3/3 | Complete | 2026-01-16 |
+| 3. Database & RLS | v1.0 | 3/3 | Complete | 2026-01-16 |
+| 4. Onboarding Flow | v1.0 | 3/3 | Complete | 2026-01-16 |
+| 5. Scheduling Engine | v1.0 | 3/3 | Complete | 2026-01-17 |
+| 6. Calendar UI | v1.0 | 6/6 | Complete | 2026-01-18 |
+| 6.5. Schedule Chat | v1.0 | 3/3 | Complete | 2026-01-23 |
+| 7. Goals & Preferences | v1.0 | 3/3 | Complete | 2026-01-23 |
+| 8. LLM Gateway | v1.0 | 4/4 | Complete | 2026-01-23 |
+| 9. Settings & Billing | v1.0 | 3/3 | Complete | 2026-01-24 |
+| 10. Hardening & Launch | v1.0 | 4/4 | Complete | 2026-01-25 |
+| 11. LLM Gateway Activation & Exploration | v1.1 | 0/? | Not started | - |
+| 12. Scheduling Engine Validation | v1.1 | 0/? | Not started | - |
+| 13. Chat & Adaptation | v1.1 | 0/? | Not started | - |
+| 14. Polish & Cost Optimization | v1.1 | 0/? | Not started | - |
 
 ## Notes
 
