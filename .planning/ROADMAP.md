@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Goals & Preferences** - Goals management and preference system
 - [x] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
 - [x] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
-- [ ] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
+- [x] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
 
 ## Phase Details
 
@@ -184,8 +184,8 @@ Plans:
 Plans:
 - [x] 10-01: Landing page with waitlist
 - [x] 10-02: Weekly review feature
-- [ ] 10-03: CSP header finalization
-- [ ] 10-04: Final security audit and verification
+- [x] 10-03: CSP header finalization
+- [x] 10-04: Final security audit and verification
 
 **Note**: Basic security headers and rate limiting moved to Phase 3 for early protection.
 
@@ -206,7 +206,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Goals & Preferences | 3/3 | Complete | 2026-01-23 |
 | 8. LLM Gateway | 4/4 | Complete | 2026-01-23 |
 | 9. Settings & Billing | 3/3 | Complete | 2026-01-24 |
-| 10. Hardening & Launch | 2/4 | In progress | - |
+| 10. Hardening & Launch | 4/4 | Complete | 2026-01-25 |
 
 ## Notes
 
