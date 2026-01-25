@@ -149,6 +149,7 @@ export interface GoalWithMetadata {
   id: string
   title: string
   realmId: string
+  realmName?: string
   hoursPerWeek: number
   cognitiveLoad: CognitiveLoad
   requiresDeepWork: boolean
@@ -188,6 +189,7 @@ export interface ScheduleEvent {
   slot: TimeSlot
   goalId?: string
   realmId?: string
+  realmName?: string
   isLocked: boolean // true for non-goal events
   cognitiveLoad?: CognitiveLoad
   isAnchoredSession?: boolean // true if scheduled via habit stacking

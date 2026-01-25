@@ -339,13 +339,26 @@ export async function POST(request: Request) {
     // 10. Call LLM
     const response = await provider.chat(messages, { maxTokens: 500 })
 
+    // Debug: Log raw response to help diagnose modification parsing
+    console.log('[Chat] Raw LLM response:', response.content.substring(0, 500))
+
     // 11. Parse response for modifications
     const modification = parseModificationFromResponse(response.content)
     let modificationResult: ModificationResult | null = null
 
+    // Debug: Log parsing result
+    if (modification) {
+      console.log('[Chat] Parsed modification:', JSON.stringify(modification))
+    } else if (response.content.toLowerCase().includes('move') ||
+               response.content.toLowerCase().includes('delete') ||
+               response.content.toLowerCase().includes('change')) {
+      console.log('[Chat] Modification keywords detected but no JSON block found')
+    }
+
     // 12. Apply modification if found
     if (modification) {
       modificationResult = await applyModification(supabase, user.id, weekStart, modification)
+      console.log('[Chat] Modification result:', JSON.stringify(modificationResult))
     }
 
     // 13. Save assistant response

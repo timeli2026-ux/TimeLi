@@ -48,9 +48,10 @@ export function RealmPieChart({ events, className }: RealmPieChartProps) {
     const realmMinutes: Record<string, number> = {}
 
     // Sum up minutes per realm (only goal events have realms)
+    // Use realmName if available, otherwise skip UUID-based grouping
     for (const event of events) {
-      if (event.type === 'goal' && event.realmId) {
-        const realmKey = event.realmId.toLowerCase()
+      if (event.type === 'goal' && event.realmName) {
+        const realmKey = event.realmName.toLowerCase()
         realmMinutes[realmKey] = (realmMinutes[realmKey] || 0) + event.slot.durationMinutes
       }
     }

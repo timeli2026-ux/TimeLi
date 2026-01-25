@@ -127,11 +127,15 @@ function transformCommitments(dbCommitments: Record<string, unknown>[]): FixedCo
  * Transform database goals to scheduler format
  */
 function transformGoals(dbGoals: Record<string, unknown>[]): GoalWithMetadata[] {
-  return dbGoals.map(g => ({
-    id: g.id as string,
-    title: g.title as string,
-    realmId: g.realm_id as string,
-    hoursPerWeek: g.hours_per_week as number,
+  return dbGoals.map(g => {
+    // Extract realm name from joined data
+    const realm = g.realm as { id: string; name: string; icon?: string } | null
+    return {
+      id: g.id as string,
+      title: g.title as string,
+      realmId: g.realm_id as string,
+      realmName: realm?.name,
+      hoursPerWeek: g.hours_per_week as number,
     cognitiveLoad: ((g.cognitive_load as string) || 'medium') as CognitiveLoad,
     requiresDeepWork: (g.requires_deep_work as boolean) || false,
     deadline: g.deadline ? new Date(g.deadline as string) : undefined,
@@ -148,7 +152,7 @@ function transformGoals(dbGoals: Record<string, unknown>[]): GoalWithMetadata[] 
       maximumDuration: 90,
       allowSplitting: true
     }
-  }))
+  }})
 }
 
 // =============================================================================

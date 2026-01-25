@@ -152,11 +152,18 @@ If the user asks to modify their schedule, respond with TWO parts:
 \`\`\`
 
 ## Important Rules
-- Only modify events that are NOT locked
-- Use the exact event ID from the schedule
+- Only modify events that are NOT locked (locked events cannot be moved or deleted)
+- Use the EXACT event ID from the schedule above (e.g., "evt_abc123")
 - dayOfWeek: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
 - startTime must be in HH:mm format (24-hour)
 - If unclear what the user wants, ask clarifying questions
 - When storing feedback, summarize the user's preference concisely
-- NEVER include the JSON block unless the user is actually requesting a change or expressing a preference`
+
+## When to Include JSON
+- If user says "move", "reschedule", "change time", "put X at", etc. → include JSON block with action: "move"
+- If user says "delete", "remove", "cancel" → include JSON block with action: "delete"
+- If user says "I prefer", "I like", "don't schedule X at Y" → include JSON block with action: "feedback"
+- For questions about the schedule (what's on, when, etc.) → NO JSON block, just answer
+
+ALWAYS include the JSON code block when the user requests ANY modification. Match the event by title when finding the eventId.`
 }
