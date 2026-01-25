@@ -4,7 +4,7 @@
 -- This file contains SQL to be pasted into the Supabase SQL Editor
 --
 -- INSTRUCTIONS:
--- 1. Go to https://supabase.com/dashboard/project/fbkwuyglamgtihunjamr/sql
+-- 1. Go to https://supabase.com/dashboard/project/YOUR_PROJECT_ID/sql
 -- 2. Copy everything below the "RUN THIS" section
 -- 3. Paste into the SQL editor and click "Run"
 --
@@ -13,15 +13,15 @@
 -- - user_preferences table + policies
 -- - fixed_commitments table + policies
 -- - update_updated_at() function
--- - life_realms table (if created during onboarding)
--- - user_goals table (if created during onboarding)
 --
 -- WHAT THIS ADDS:
+-- - life_realms table (life areas for organizing goals)
+-- - user_goals table (goals linked to realms)
 -- - generated_schedules table (stores weekly schedules)
 -- - schedule_completions table (tracks completed/skipped events)
 -- - schedule_feedback table (user preferences from chat)
 -- - schedule_conversations table (chat history with LLM)
--- - api_usage table (daily API rate limiting for OpenAI fallback)
+-- - api_usage table (daily API rate limiting)
 -- - subscriptions table (Stripe subscription tracking)
 -- - usage_tracking table (billing period usage limits)
 -- =============================================================================
@@ -30,11 +30,131 @@
 -- RUN THIS - PASTE EVERYTHING BELOW INTO SUPABASE SQL EDITOR
 -- =============================================================================
 
--- Drop tables if they exist (clean slate for these new tables)
+-- Drop tables if they exist (clean slate - order matters for foreign keys)
 DROP TABLE IF EXISTS public.schedule_conversations CASCADE;
 DROP TABLE IF EXISTS public.schedule_feedback CASCADE;
 DROP TABLE IF EXISTS public.schedule_completions CASCADE;
 DROP TABLE IF EXISTS public.generated_schedules CASCADE;
+DROP TABLE IF EXISTS public.user_goals CASCADE;
+DROP TABLE IF EXISTS public.life_realms CASCADE;
+
+-- =============================================================================
+-- TABLE: life_realms
+-- =============================================================================
+-- Stores user's life realms (areas of life they want to balance)
+-- Examples: Health, Career, Relationships, Personal Growth, etc.
+
+CREATE TABLE public.life_realms (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  name text NOT NULL,
+  icon text,
+  is_custom boolean DEFAULT false,
+  display_order integer DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(user_id, name)
+);
+
+-- =============================================================================
+-- TABLE: user_goals
+-- =============================================================================
+-- Stores user's goals linked to realms with scheduling metadata
+
+CREATE TABLE public.user_goals (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  realm_id uuid REFERENCES public.life_realms ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
+  hours_per_week numeric(4,1) NOT NULL CHECK (hours_per_week >= 0.5 AND hours_per_week <= 40),
+  is_active boolean DEFAULT true,
+  -- Cognitive load for decision fatigue awareness
+  cognitive_load text CHECK (cognitive_load IN ('high', 'medium', 'low')) DEFAULT 'medium',
+  -- Deep work flag for flow state protection
+  requires_deep_work boolean DEFAULT false,
+  -- Deadline support
+  deadline date,
+  deadline_type text CHECK (deadline_type IN ('hard', 'soft', 'none')) DEFAULT 'none',
+  -- Habit stacking / anchoring
+  anchor_type text CHECK (anchor_type IN ('none', 'after_event', 'before_event')) DEFAULT 'none',
+  anchor_event_id uuid REFERENCES public.fixed_commitments(id) ON DELETE SET NULL,
+  -- Session duration constraints
+  minimum_session_minutes integer DEFAULT 30,
+  preferred_session_minutes integer DEFAULT 60,
+  -- Intensity for recovery buffer calculation
+  intensity_level integer CHECK (intensity_level >= 1 AND intensity_level <= 5) DEFAULT 3,
+  -- Timestamps
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- =============================================================================
+-- RLS: life_realms
+-- =============================================================================
+
+ALTER TABLE public.life_realms ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own life_realms"
+  ON public.life_realms FOR SELECT
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can create own life_realms"
+  ON public.life_realms FOR INSERT
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can update own life_realms"
+  ON public.life_realms FOR UPDATE
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can delete own life_realms"
+  ON public.life_realms FOR DELETE
+  USING ((SELECT auth.uid()) = user_id);
+
+-- =============================================================================
+-- RLS: user_goals
+-- =============================================================================
+
+ALTER TABLE public.user_goals ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own user_goals"
+  ON public.user_goals FOR SELECT
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can create own user_goals"
+  ON public.user_goals FOR INSERT
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can update own user_goals"
+  ON public.user_goals FOR UPDATE
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can delete own user_goals"
+  ON public.user_goals FOR DELETE
+  USING ((SELECT auth.uid()) = user_id);
+
+-- =============================================================================
+-- TRIGGERS: life_realms & user_goals
+-- =============================================================================
+
+CREATE TRIGGER life_realms_updated_at
+  BEFORE UPDATE ON public.life_realms
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+CREATE TRIGGER user_goals_updated_at
+  BEFORE UPDATE ON public.user_goals
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- =============================================================================
+-- INDEXES: life_realms & user_goals
+-- =============================================================================
+
+CREATE INDEX life_realms_user_id_idx ON public.life_realms(user_id);
+CREATE INDEX user_goals_user_id_idx ON public.user_goals(user_id);
+CREATE INDEX user_goals_realm_id_idx ON public.user_goals(realm_id);
+CREATE INDEX user_goals_deadline_idx ON public.user_goals(deadline) WHERE deadline IS NOT NULL;
+CREATE INDEX user_goals_anchor_event_idx ON public.user_goals(anchor_event_id) WHERE anchor_event_id IS NOT NULL;
 
 -- =============================================================================
 -- TABLE: generated_schedules
@@ -64,7 +184,7 @@ CREATE TABLE public.schedule_completions (
   user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
   schedule_id uuid REFERENCES public.generated_schedules ON DELETE CASCADE,
   event_id text NOT NULL,
-  goal_id uuid,
+  goal_id uuid REFERENCES public.user_goals ON DELETE SET NULL,
   status text CHECK (status IN ('completed', 'skipped', 'partial')) NOT NULL,
   notes text,
   scheduled_date date,
@@ -89,7 +209,7 @@ CREATE TABLE public.schedule_feedback (
     'day_preference',
     'general'
   )) NOT NULL,
-  goal_id uuid,
+  goal_id uuid REFERENCES public.user_goals ON DELETE CASCADE,
   day_of_week integer CHECK (day_of_week >= 0 AND day_of_week <= 6),
   start_time time,
   end_time time,
@@ -372,13 +492,15 @@ NOTIFY pgrst, 'reload schema';
 -- If you see "Success. No rows returned" the migration worked.
 --
 -- Tables created:
--- - generated_schedules
--- - schedule_completions
--- - schedule_feedback
--- - schedule_conversations
--- - api_usage
--- - subscriptions (NEW - for Stripe billing)
--- - usage_tracking (NEW - for billing period limits)
+-- - life_realms (life areas for organizing goals)
+-- - user_goals (goals with scheduling metadata)
+-- - generated_schedules (weekly schedules)
+-- - schedule_completions (task completion tracking)
+-- - schedule_feedback (user preferences from chat)
+-- - schedule_conversations (chat history)
+-- - api_usage (rate limiting)
+-- - subscriptions (Stripe billing)
+-- - usage_tracking (billing period limits)
 --
 -- You can verify by running:
 -- SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
