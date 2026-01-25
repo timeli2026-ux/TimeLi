@@ -11,7 +11,7 @@ None
 ## Milestones
 
 - ✅ **v1.0 MVP** - Phases 1-10 (shipped 2026-01-25)
-- 🚧 **v1.1 Validation & Adaptation** - Phases 11-14 (in progress)
+- 🚧 **v2.0 Student MVP** - Phases 11-17 (in progress)
 
 ## Phases
 
@@ -32,10 +32,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: LLM Gateway** - Server-side AI endpoints with secure logging
 - [x] **Phase 9: Settings & Billing** - Stripe integration with webhook verification
 - [x] **Phase 10: Hardening & Launch** - Landing page, weekly review, final audit
-- [ ] **Phase 11: LLM Gateway Activation & Exploration** - API key setup, test calls, audit adaptation capabilities
-- [ ] **Phase 12: Scheduling Engine Validation** - Test hard constraints, allocation quality, rationale
-- [ ] **Phase 13: Chat & Adaptation** - Validate chat refinement, implement memory/adaptation
-- [ ] **Phase 14: Polish & Cost Optimization** - Fix discovered issues, optimize prompts for cost
+- [ ] **Phase 11: Database & Models** - courses/assignments tables, CRUD APIs, RLS
+- [ ] **Phase 12: Syllabus Import** - LLM parsing endpoint, hour estimation
+- [ ] **Phase 13: New Onboarding** - 4-step wizard replacing current 8-step
+- [ ] **Phase 14: Scheduling Engine Refactor** - Deadline-based inputs, backward scheduling, semester-wide
+- [ ] **Phase 15: Semester Timeline** - Week-column view, due date markers, heat coloring
+- [ ] **Phase 16: Calendar & Management** - Updated calendar, Classes page, Assignments page
+- [ ] **Phase 17: Cleanup & Polish** - Remove life realms/chat/payments, update nav
 
 ## Phase Details
 
@@ -200,48 +203,74 @@ Plans:
 
 ---
 
-### 🚧 v1.1 Validation & Adaptation (In Progress)
+### 🚧 v2.0 Student MVP (In Progress)
 
-**Milestone Goal:** Validate core AI features work correctly with real API, add adaptive behavior, and polish based on real usage.
+**Milestone Goal:** Transform TimeLi from a generic productivity app into a focused student scheduling tool. Core value: "Tell me your classes and deadlines. I'll plan your study schedule for the whole semester."
 
-#### Phase 11: LLM Gateway Activation & Exploration
-**Goal**: Configure real API key, validate gateway functions with actual Claude API calls, audit existing memory/adaptation capabilities
+#### Phase 11: Database & Models
+**Goal**: Create courses and assignments tables with RLS, build CRUD APIs, simplify user_preferences
 **Depends on**: Phase 10 (v1.0 complete)
-**Research**: None needed (codebase exploration)
-**Plans**: 3
+**Research**: Unlikely (established Supabase patterns)
+**Plans**: TBD
 
 Plans:
-- [x] 11-01: Simplify LLM to Anthropic-only (remove self-hosted/OpenAI complexity)
-- [ ] 11-02: Test LLM endpoints with real API (user setup: ANTHROPIC_API_KEY)
-- [ ] 11-03: Audit adaptation capabilities (feedback, preferences, patterns)
+- [ ] 11-01: TBD
 
-#### Phase 12: Scheduling Engine Validation
-**Goal**: Test that hard constraints are respected, time allocation is smart, and rationale is explainable
+#### Phase 12: Syllabus Import
+**Goal**: Build LLM-powered syllabus parsing endpoint that extracts assignments with due dates and estimated hours
 **Depends on**: Phase 11
-**Research**: Unlikely (testing existing code)
+**Research**: Likely (LLM parsing, prompt engineering for extraction)
+**Research topics**: Claude structured extraction, assignment hour estimation heuristics
 **Plans**: TBD
 
 Plans:
 - [ ] 12-01: TBD
 
-#### Phase 13: Chat & Adaptation
-**Goal**: Validate chat refinement works correctly, implement memory/adaptation features as needed
+#### Phase 13: New Onboarding
+**Goal**: Replace 8-step onboarding with streamlined 4-step wizard (Basics, Classes, Assignments, Generate)
 **Depends on**: Phase 12
-**Research**: Likely (may need new features based on exploration)
-**Research topics**: Schedule evolution patterns, user pattern learning approaches
+**Research**: Unlikely (internal UI patterns)
 **Plans**: TBD
 
 Plans:
 - [ ] 13-01: TBD
 
-#### Phase 14: Polish & Cost Optimization
-**Goal**: Fix rough edges discovered during validation, optimize LLM prompts for cost efficiency
+#### Phase 14: Scheduling Engine Refactor
+**Goal**: Modify engine to accept assignments with deadlines instead of weekly goals, schedule backward from due dates across full semester with spaced practice
 **Depends on**: Phase 13
-**Research**: Unlikely (internal refinement)
+**Research**: Likely (deadline-based CSP scheduling, spaced practice algorithms)
+**Research topics**: Backward scheduling from deadlines, study session spacing, exam prep intensification
 **Plans**: TBD
 
 Plans:
 - [ ] 14-01: TBD
+
+#### Phase 15: Semester Timeline
+**Goal**: Create semester overview with horizontal week-column timeline, assignment markers, and week intensity heat coloring
+**Depends on**: Phase 14
+**Research**: Unlikely (internal UI patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 15-01: TBD
+
+#### Phase 16: Calendar & Management
+**Goal**: Update calendar for classes + study sessions, build Classes and Assignments management pages with progress tracking
+**Depends on**: Phase 15
+**Research**: Unlikely (internal CRUD/UI patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 16-01: TBD
+
+#### Phase 17: Cleanup & Polish
+**Goal**: Remove/hide deprecated features (life realms, chat, payments, complex preferences), update navigation, final testing
+**Depends on**: Phase 16
+**Research**: Unlikely (cleanup work)
+**Plans**: TBD
+
+Plans:
+- [ ] 17-01: TBD
 
 ## Progress
 
@@ -261,10 +290,13 @@ Phases execute in numeric order: 1 → 2 → ... → 10 → 11 → 12 → 13 →
 | 8. LLM Gateway | v1.0 | 4/4 | Complete | 2026-01-23 |
 | 9. Settings & Billing | v1.0 | 3/3 | Complete | 2026-01-24 |
 | 10. Hardening & Launch | v1.0 | 4/4 | Complete | 2026-01-25 |
-| 11. LLM Gateway Activation & Exploration | v1.1 | 1/3 | In progress | - |
-| 12. Scheduling Engine Validation | v1.1 | 0/? | Not started | - |
-| 13. Chat & Adaptation | v1.1 | 0/? | Not started | - |
-| 14. Polish & Cost Optimization | v1.1 | 0/? | Not started | - |
+| 11. Database & Models | v2.0 | 0/? | Not started | - |
+| 12. Syllabus Import | v2.0 | 0/? | Not started | - |
+| 13. New Onboarding | v2.0 | 0/? | Not started | - |
+| 14. Scheduling Engine Refactor | v2.0 | 0/? | Not started | - |
+| 15. Semester Timeline | v2.0 | 0/? | Not started | - |
+| 16. Calendar & Management | v2.0 | 0/? | Not started | - |
+| 17. Cleanup & Polish | v2.0 | 0/? | Not started | - |
 
 ## Notes
 

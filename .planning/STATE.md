@@ -4,17 +4,17 @@
 
 See: .planning/PROJECT.md (updated 2026-01-15)
 
-**Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** v1.1 Validation & Adaptation
+**Core value:** Tell me your classes and deadlines. I'll plan your study schedule for the whole semester.
+**Current focus:** v2.0 Student MVP
 
 ## Current Position
 
-Phase: 11 of 14 (LLM Gateway Activation & Exploration)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-25 — Completed 11-01-PLAN.md
+Phase: 11 of 17 (Database & Models)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-01-25 — Milestone v2.0 Student MVP created
 
-Progress: ██████████░░░░ 76%
+Progress: ░░░░░░░░░░░░░░ 0%
 
 ## Performance Metrics
 
@@ -80,9 +80,12 @@ None.
 
 - Milestone v1.1 created: Validation & Adaptation, 4 phases (Phase 11-14)
 - Phase 11-01: LLM simplified to Anthropic-only
+- Milestone v1.1 replaced by v2.0: Student MVP pivot, 7 phases (Phase 11-17)
+  - Core pivot: Generic productivity → Student scheduling
+  - New focus: Courses, assignments, syllabus import, semester-wide scheduling
 
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 11-01-PLAN.md
+Stopped at: Milestone v2.0 Student MVP initialization
 Resume file: None
