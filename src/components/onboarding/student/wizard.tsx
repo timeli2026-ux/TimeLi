@@ -14,6 +14,7 @@ import {
 } from './types'
 import { BasicsStep } from './steps/basics-step'
 import { ClassesStep } from './steps/classes-step'
+import { AssignmentsStep } from './steps/assignments-step'
 
 interface StudentWizardProps {
   initialStep?: number
@@ -102,7 +103,7 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
     }))
   }
 
-  // Assignment handlers (for future steps)
+  // Assignment handlers
   const handleAddAssignment = (assignment: Omit<AssignmentInput, 'id'>) => {
     const newAssignment: AssignmentInput = {
       ...assignment,
@@ -111,6 +112,17 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
     setFormData((prev) => ({
       ...prev,
       assignments: [...prev.assignments, newAssignment],
+    }))
+  }
+
+  const handleAddAssignments = (assignments: Omit<AssignmentInput, 'id'>[]) => {
+    const newAssignments = assignments.map((a) => ({
+      ...a,
+      id: crypto.randomUUID(),
+    }))
+    setFormData((prev) => ({
+      ...prev,
+      assignments: [...prev.assignments, ...newAssignments],
     }))
   }
 
@@ -149,14 +161,15 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
         )
 
       case 2:
-        // Assignments: Placeholder for Plan 02
+        // Assignments: Import or add manually
         return (
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl font-semibold">Add Your Assignments</h2>
-            <p className="text-muted-foreground max-w-md">
-              This step is coming soon. For now, you can skip ahead.
-            </p>
-          </div>
+          <AssignmentsStep
+            courses={formData.courses}
+            assignments={formData.assignments}
+            onAddAssignment={handleAddAssignment}
+            onAddAssignments={handleAddAssignments}
+            onRemoveAssignment={handleRemoveAssignment}
+          />
         )
 
       case 3:
