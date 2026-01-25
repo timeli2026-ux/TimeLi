@@ -288,9 +288,23 @@ export async function POST(request: NextRequest) {
       previousWeekSchedule: prevSchedule
     }
 
-    // Log feedback if provided (will be used for LLM integration later)
+    // Store feedback in database if provided
     if (feedback) {
-      console.log('Regeneration feedback:', feedback)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: feedbackError } = await (supabase as any)
+        .from('schedule_feedback')
+        .insert({
+          user_id: user.id,
+          feedback_type: 'general',
+          preference_value: feedback,
+          source: 'manual',
+          is_active: true,
+        })
+
+      if (feedbackError) {
+        console.error('Failed to save feedback:', feedbackError)
+        // Continue anyway - schedule generation should proceed
+      }
     }
 
     // 6. Check for infeasibility FIRST

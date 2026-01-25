@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { WeekGrid } from '@/components/calendar/week-grid'
 import { CompletionModal, type CompletionStatus } from '@/components/calendar/completion-modal'
 import { RecalibrateDialog, type RecalibrateScope } from '@/components/calendar/recalibrate-dialog'
+import { EventCreateDialog, type EventCreateData } from '@/components/calendar/event-create-dialog'
+import { EventEditDialog, type EventEditData } from '@/components/calendar/event-edit-dialog'
 import { DashboardSidebar } from '@/components/calendar/dashboard-sidebar'
 import { Chatbox } from '@/components/calendar/chatbox'
 import { UsageIndicator } from '@/components/calendar/usage-indicator'
@@ -63,6 +65,14 @@ export default function CalendarPage() {
   // Recalibrate dialog state
   const [showRecalibrate, setShowRecalibrate] = useState(false)
   const [isRecalibrating, setIsRecalibrating] = useState(false)
+
+  // Event creation dialog state
+  const [showEventCreate, setShowEventCreate] = useState(false)
+  const [createEventSlot, setCreateEventSlot] = useState<{ dayOfWeek: number; startTime: string } | null>(null)
+
+  // Event edit dialog state
+  const [showEventEdit, setShowEventEdit] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<ScheduleEventWithFlexibility | null>(null)
 
   // Calculate navigation bounds
   const canGoBack = useMemo(() => {
@@ -295,6 +305,94 @@ export default function CalendarPage() {
     }
   }, [weekStart])
 
+  // Handle slot click (create new event)
+  const handleSlotClick = useCallback((dayOfWeek: number, startTime: string) => {
+    setCreateEventSlot({ dayOfWeek, startTime })
+    setShowEventCreate(true)
+  }, [])
+
+  // Handle event creation
+  const handleCreateEvent = useCallback(async (data: EventCreateData) => {
+    const weekStartStr = formatDateToString(weekStart)
+
+    const response = await fetch('/api/schedule/create-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        weekStart: weekStartStr,
+        ...data,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to create event')
+    }
+
+    // Refresh schedule to show new event(s)
+    await loadSchedule()
+    toast.success(data.isRecurring && data.recurringDays.length > 0
+      ? `Created ${data.recurringDays.length + 1} events`
+      : 'Event created')
+  }, [weekStart, loadSchedule])
+
+  // Handle event edit (open dialog)
+  const handleEventEdit = useCallback((event: ScheduleEventWithFlexibility) => {
+    if (event.isLocked) {
+      toast.error('Cannot edit locked events')
+      return
+    }
+    setEditingEvent(event)
+    setShowEventEdit(true)
+  }, [])
+
+  // Handle event update
+  const handleUpdateEvent = useCallback(async (eventId: string, data: EventEditData) => {
+    const weekStartStr = formatDateToString(weekStart)
+
+    const response = await fetch('/api/schedule/update-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        weekStart: weekStartStr,
+        eventId,
+        updates: data,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to update event')
+    }
+
+    // Refresh schedule to show changes
+    await loadSchedule()
+    toast.success('Event updated')
+  }, [weekStart, loadSchedule])
+
+  // Handle event delete
+  const handleDeleteEvent = useCallback(async (eventId: string) => {
+    const weekStartStr = formatDateToString(weekStart)
+
+    const response = await fetch('/api/schedule/update-event', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        weekStart: weekStartStr,
+        eventId,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to delete event')
+    }
+
+    // Refresh schedule to show changes
+    await loadSchedule()
+    toast.success('Event deleted')
+  }, [weekStart, loadSchedule])
+
   // Handle recalibration
   const handleRecalibrate = useCallback(async (scope: RecalibrateScope, feedback?: string) => {
     setIsRecalibrating(true)
@@ -421,6 +519,8 @@ export default function CalendarPage() {
               onEventClick={handleEventClick}
               onEventMove={handleEventMove}
               onMarkComplete={handleMarkComplete}
+              onEventEdit={handleEventEdit}
+              onSlotClick={handleSlotClick}
               isLoading={isRecalibrating}
             />
           )}
@@ -454,6 +554,34 @@ export default function CalendarPage() {
         onOpenChange={setShowRecalibrate}
         onConfirm={handleRecalibrate}
       />
+
+      {/* Event Create Dialog */}
+      {createEventSlot && (
+        <EventCreateDialog
+          open={showEventCreate}
+          onOpenChange={(open) => {
+            setShowEventCreate(open)
+            if (!open) setCreateEventSlot(null)
+          }}
+          initialDayOfWeek={createEventSlot.dayOfWeek}
+          initialStartTime={createEventSlot.startTime}
+          onSubmit={handleCreateEvent}
+        />
+      )}
+
+      {/* Event Edit Dialog */}
+      {editingEvent && (
+        <EventEditDialog
+          open={showEventEdit}
+          onOpenChange={(open) => {
+            setShowEventEdit(open)
+            if (!open) setEditingEvent(null)
+          }}
+          event={editingEvent}
+          onSubmit={handleUpdateEvent}
+          onDelete={handleDeleteEvent}
+        />
+      )}
     </div>
   )
 }

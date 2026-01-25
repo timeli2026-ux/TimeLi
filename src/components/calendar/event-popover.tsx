@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, Clock, Calendar, HelpCircle, CheckCircle } from 'lucide-react'
+import { Lock, Clock, Calendar, HelpCircle, CheckCircle, Pencil } from 'lucide-react'
 import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
 import { getDayName } from '@/lib/scheduling/types'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -26,6 +26,7 @@ interface EventPopoverProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onMarkComplete?: () => void
+  onEdit?: () => void
   children: React.ReactNode
 }
 
@@ -39,7 +40,7 @@ interface EventPopoverProps {
  * 4. Flexibility Section - Flexibility level and alternatives (goal events only)
  * 5. Actions - Mark Complete, Reschedule (placeholders)
  */
-export function EventPopover({ event, open, onOpenChange, onMarkComplete, children }: EventPopoverProps) {
+export function EventPopover({ event, open, onOpenChange, onMarkComplete, onEdit, children }: EventPopoverProps) {
   const isGoal = event.type === 'goal'
   const timeRange = `${formatTimeDisplay(event.slot.startTime)} - ${formatTimeDisplay(event.slot.endTime)}`
   const dayName = getDayName(event.slot.dayOfWeek)
@@ -134,8 +135,7 @@ export function EventPopover({ event, open, onOpenChange, onMarkComplete, childr
         )}
 
         {/* Actions Section */}
-        {/* Note: "Reschedule via chat" will be added in Phase 6.5 */}
-        <div className="p-2">
+        <div className="p-2 space-y-2">
           <Button
             variant="outline"
             size="sm"
@@ -148,6 +148,21 @@ export function EventPopover({ event, open, onOpenChange, onMarkComplete, childr
             <CheckCircle className="h-3.5 w-3.5" />
             Mark Complete
           </Button>
+          {/* Edit button - only show for non-locked events */}
+          {!event.isLocked && onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5"
+              onClick={() => {
+                onOpenChange(false) // Close popover
+                onEdit()
+              }}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit Event
+            </Button>
+          )}
         </div>
       </PopoverContent>
     </Popover>

@@ -28,6 +28,8 @@ interface WeekGridProps {
   onEventClick?: (event: ScheduleEventWithFlexibility) => void
   onEventMove?: (eventId: string, newSlot: TimeSlot) => void
   onMarkComplete?: (event: ScheduleEventWithFlexibility) => void
+  onEventEdit?: (event: ScheduleEventWithFlexibility) => void
+  onSlotClick?: (dayOfWeek: number, startTime: string) => void
   isLoading?: boolean
   startHour?: number
   endHour?: number
@@ -120,6 +122,8 @@ export function WeekGrid({
   onEventClick,
   onEventMove,
   onMarkComplete,
+  onEventEdit,
+  onSlotClick,
   isLoading = false,
   startHour = DEFAULT_DAY_START_HOUR,
   endHour = DEFAULT_DAY_END_HOUR,
@@ -203,6 +207,21 @@ export function WeekGrid({
       console.error('Failed to parse dropped event data')
     }
   }, [startHour, onEventMove])
+
+  // Handle click on empty slot
+  const handleSlotClick = useCallback((dayIndex: number, slotIndex: number) => {
+    // Don't trigger if we were dragging
+    if (draggingEvent) return
+
+    // Convert calendar day index to JS day of week
+    const jsDayOfWeek = calendarDayToJsDay(dayIndex)
+
+    // Calculate start time from slot index
+    const startMinutes = startHour * 60 + slotIndex * SLOT_DURATION_MINUTES
+    const startTime = minutesToTime(startMinutes)
+
+    onSlotClick?.(jsDayOfWeek, startTime)
+  }, [draggingEvent, startHour, onSlotClick])
 
   // Check if we're viewing the current week (for current time indicator)
   const isCurrentWeek = useMemo(() => {
@@ -327,11 +346,12 @@ export function WeekGrid({
                     return (
                       <div
                         key={`slot-${dayIndex}-${slotIndex}`}
+                        onClick={() => handleSlotClick(dayIndex, slotIndex)}
                         onDragOver={(e) => handleDragOver(e, dayIndex, slotIndex)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, dayIndex, slotIndex)}
                         className={cn(
-                          'border-b transition-colors',
+                          'border-b transition-colors cursor-pointer',
                           isHourBoundary
                             ? 'border-border/50'
                             : 'border-border/20',
@@ -387,6 +407,7 @@ export function WeekGrid({
                             open={openEventId === event.id}
                             onOpenChange={(isOpen) => handlePopoverChange(event.id, isOpen)}
                             onMarkComplete={() => onMarkComplete?.(event)}
+                            onEdit={() => onEventEdit?.(event)}
                           >
                             <CalendarEvent
                               event={event}

@@ -92,15 +92,15 @@ export function RealmPieChart({ events, className }: RealmPieChartProps) {
         <span className="text-xs text-muted-foreground">{realmData.totalHours}h total</span>
       </div>
 
-      <div className="h-[180px]">
+      <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={realmData.data}
               cx="50%"
-              cy="50%"
-              innerRadius={40}
-              outerRadius={65}
+              cy="45%"
+              innerRadius={35}
+              outerRadius={55}
               paddingAngle={2}
               dataKey="minutes"
               nameKey="name"
@@ -124,11 +124,12 @@ export function RealmPieChart({ events, className }: RealmPieChartProps) {
               }}
             />
             <Legend
-              layout="vertical"
-              align="right"
-              verticalAlign="middle"
+              layout="horizontal"
+              align="center"
+              verticalAlign="bottom"
               iconSize={8}
               iconType="circle"
+              wrapperStyle={{ paddingTop: '8px' }}
               formatter={(value: string) => (
                 <span className="text-xs text-foreground">{value}</span>
               )}

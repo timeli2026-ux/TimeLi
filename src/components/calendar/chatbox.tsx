@@ -159,9 +159,20 @@ export function Chatbox({ weekStart, onScheduleChange, className }: ChatboxProps
       const data = await response.json()
 
       // Add assistant response to conversation with modification info
+      // If message is empty but modification succeeded, use a fallback message
+      let messageContent = data.message
+      if (!messageContent && data.modification?.success) {
+        const fallbackMessages: Record<string, string> = {
+          move: "Done! I've updated your schedule.",
+          delete: "Done! I've removed that event.",
+          feedback: "Got it! I've noted your preference.",
+        }
+        messageContent = fallbackMessages[data.modification.action] || "Done! I've updated your schedule."
+      }
+
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.message,
+        content: messageContent || "I've processed your request.",
         timestamp: new Date().toISOString(),
         modification: data.modification,
       }

@@ -120,8 +120,10 @@ ${formattedSchedule}
 
 ## When User Requests a Change
 If the user asks to modify their schedule, respond with TWO parts:
-1. A friendly confirmation message
+1. A friendly confirmation message explaining what you did (REQUIRED - never respond with only JSON)
 2. A JSON code block with the structured modification
+
+IMPORTANT: ALWAYS include a brief conversational response explaining what you did, in addition to the JSON block. The user should see a human-readable message, not just JSON.
 
 ### Move Event Format
 \`\`\`json
