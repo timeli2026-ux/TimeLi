@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 10 of 10 (Hardening & Launch)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In progress
-Last activity: 2026-01-25 — Completed 10-01-PLAN.md (Landing Page)
+Last activity: 2026-01-25 — Completed 10-02-PLAN.md (Weekly Review)
 
-Progress: █████████████████████████████░ 97%
+Progress: █████████████████████████████░ 98%
 
 ## Performance Metrics
 
@@ -150,6 +150,10 @@ Recent decisions affecting current work:
 - (landing) Waitlist uses anon key - no auth required for signup
 - (landing) Email normalized to lowercase for deduplication
 - (landing) No SELECT policy on waitlist - admin access only via service role
+- (review) Week selector restricted to completed weeks (can't review current/future)
+- (review) Notes auto-save on blur with unsaved indicator
+- (review) Suggestions use confirm/dismiss pattern (future: save as preferences)
+- (nav) Added navigation links to protected layout (Calendar, Goals, Review, Settings)
 
 ### Pending Todos
 
@@ -162,6 +166,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 10-01-PLAN.md (Landing Page)
+Stopped at: Completed 10-02-PLAN.md (Weekly Review)
 Resume file: None
-Next: 10-02-PLAN.md (Weekly Review)
+Next: 10-03-PLAN.md (CSP Header Finalization)
