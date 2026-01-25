@@ -231,7 +231,7 @@ Plans:
 **Research**: Unlikely (internal UI patterns)
 
 Plans:
-- [ ] 13-01: Student onboarding types, wizard shell, Basics + Classes steps
+- [x] 13-01: Student onboarding types, wizard shell, Basics + Classes steps
 - [ ] 13-02: Assignments step with syllabus import integration
 - [ ] 13-03: Generate step and completion API
 - [ ] 13-04: Page routing and user verification
@@ -293,7 +293,7 @@ Phases execute in numeric order: 1 → 2 → ... → 10 → 11 → 12 → 13 →
 | 10. Hardening & Launch | v1.0 | 4/4 | Complete | 2026-01-25 |
 | 11. Database & Models | v2.0 | 2/2 | Complete | 2026-01-25 |
 | 12. Syllabus Import | v2.0 | 1/1 | Complete | 2026-01-25 |
-| 13. New Onboarding | v2.0 | 0/4 | Not started | - |
+| 13. New Onboarding | v2.0 | 1/4 | In progress | - |
 | 14. Scheduling Engine Refactor | v2.0 | 0/? | Not started | - |
 | 15. Semester Timeline | v2.0 | 0/? | Not started | - |
 | 16. Calendar & Management | v2.0 | 0/? | Not started | - |
