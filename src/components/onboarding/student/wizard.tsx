@@ -15,6 +15,7 @@ import {
 import { BasicsStep } from './steps/basics-step'
 import { ClassesStep } from './steps/classes-step'
 import { AssignmentsStep } from './steps/assignments-step'
+import { GenerateStep } from './steps/generate-step'
 
 interface StudentWizardProps {
   initialStep?: number
@@ -36,6 +37,11 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
       setCurrentStep((prev) => prev - 1)
       setError(null)
     }
+  }
+
+  const handleGoToStep = (step: number) => {
+    setCurrentStep(step)
+    setError(null)
   }
 
   const handleNext = async () => {
@@ -173,14 +179,12 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
         )
 
       case 3:
-        // Generate: Placeholder for Plan 02
+        // Generate: Review summary and submit
         return (
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl font-semibold">Generate Your Schedule</h2>
-            <p className="text-muted-foreground max-w-md">
-              This step is coming soon. For now, click Complete to finish.
-            </p>
-          </div>
+          <GenerateStep
+            data={formData}
+            onGoToStep={handleGoToStep}
+          />
         )
 
       default:
@@ -244,7 +248,7 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
             onClick={handleNext}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Saving...' : isLastStep ? 'Complete' : 'Next'}
+            {isSubmitting ? 'Generating...' : isLastStep ? 'Generate Schedule' : 'Next'}
           </Button>
         </div>
       </Card>
