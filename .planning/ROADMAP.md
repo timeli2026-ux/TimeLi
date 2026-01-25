@@ -211,7 +211,7 @@ Plans:
 **Plans**: 3
 
 Plans:
-- [ ] 11-01: Wire AnthropicProvider into router and update docs
+- [ ] 11-01: Simplify LLM to Anthropic-only (remove self-hosted/OpenAI complexity)
 - [ ] 11-02: Test LLM endpoints with real API (user setup: ANTHROPIC_API_KEY)
 - [ ] 11-03: Audit adaptation capabilities (feedback, preferences, patterns)
 
