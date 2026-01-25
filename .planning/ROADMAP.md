@@ -207,12 +207,13 @@ Plans:
 #### Phase 11: LLM Gateway Activation & Exploration
 **Goal**: Configure real API key, validate gateway functions with actual Claude API calls, audit existing memory/adaptation capabilities
 **Depends on**: Phase 10 (v1.0 complete)
-**Research**: Likely (testing real API, exploring codebase)
-**Research topics**: Claude API patterns in production, existing adaptation code audit
-**Plans**: TBD
+**Research**: None needed (codebase exploration)
+**Plans**: 3
 
 Plans:
-- [ ] 11-01: TBD (run /gsd:plan-phase 11 to break down)
+- [ ] 11-01: Wire AnthropicProvider into router and update docs
+- [ ] 11-02: Test LLM endpoints with real API (user setup: ANTHROPIC_API_KEY)
+- [ ] 11-03: Audit adaptation capabilities (feedback, preferences, patterns)
 
 #### Phase 12: Scheduling Engine Validation
 **Goal**: Test that hard constraints are respected, time allocation is smart, and rationale is explainable
