@@ -39,7 +39,7 @@ export async function GET() {
         intensity_level,
         created_at,
         updated_at,
-        life_realms!inner (
+        life_realms (
           name
         )
       `)
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
         intensity_level,
         created_at,
         updated_at,
-        life_realms!inner (
+        life_realms (
           name
         )
       `)

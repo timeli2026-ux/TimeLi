@@ -432,7 +432,7 @@ export default function CalendarPage() {
         <Chatbox
           weekStart={weekStart}
           onScheduleChange={loadSchedule}
-          className="hidden xl:flex w-72 flex-col border-l bg-muted/30 flex-shrink-0"
+          className="hidden lg:flex w-72 flex-col border-l bg-muted/30 flex-shrink-0"
         />
       )}
 
