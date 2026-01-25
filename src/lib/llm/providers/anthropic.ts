@@ -7,14 +7,16 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk'
+import { getLLMConfig } from '../config'
 import type { LLMProvider, ChatMessage, ChatOptions, ChatResponse, LLMStatus } from '../types'
 
 export class AnthropicProvider implements LLMProvider {
   private client: Anthropic | null = null
   private model: string
 
-  constructor(model: string = 'claude-3-haiku-20240307') {
-    this.model = model
+  constructor(model?: string) {
+    const config = getLLMConfig()
+    this.model = model || config.anthropic.model
   }
 
   /**

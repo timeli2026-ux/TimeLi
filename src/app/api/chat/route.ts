@@ -1,6 +1,6 @@
 /**
  * Chat API Endpoint
- * Phase 6.5: Schedule Chat - Plan 03
+ * Phase 11: LLM Gateway Activation - Plan 01
  *
  * POST /api/chat
  * Handles chat messages for schedule modification discussions.
@@ -8,18 +8,18 @@
  * Features:
  * - Authenticates user
  * - Rate limits (20 requests per minute)
- * - API usage tracking for fallback provider
  * - Fast-fails if LLM offline
  * - Persists conversation history
  * - Parses responses for schedule modifications
  * - Applies modifications (move, delete, feedback)
  * - Returns assistant response with modification status
+ *
+ * Simplified: Uses Anthropic only (no multi-provider fallback).
  */
 
 import { createClient } from '@/lib/supabase/server'
 import { getLLMProvider, getLLMStatus } from '@/lib/llm'
 import { getOrCreateConversation, addMessage, toPromptMessages, StoredMessage } from '@/lib/services/conversation'
-import { getApiUsage, incrementApiUsage } from '@/lib/services/api-usage'
 import { rateLimit } from '@/lib/rate-limit'
 import { buildScheduleSystemPrompt } from '@/lib/chat/schedule-prompts'
 import { parseModificationFromResponse, extractTextWithoutJson, type ScheduleModification } from '@/lib/chat/modification-parser'
@@ -305,35 +305,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'weekStart must be YYYY-MM-DD format' }, { status: 400 })
     }
 
-    // 4. Get API usage for routing context
-    const usage = await getApiUsage(supabase, user.id)
-    const routerContext = {
-      userId: user.id,
-      apiUsageRemaining: usage.remaining,
-    }
-
-    // 5. Check LLM status first (fast fail)
-    const status = await getLLMStatus(routerContext)
+    // 4. Check LLM status first (fast fail)
+    const status = await getLLMStatus()
     if (!status.available) {
       return NextResponse.json({
         error: 'Chat unavailable',
         offline: true,
         message: status.message,
-        apiUsage: status.apiUsage,
       }, { status: 503 })
     }
 
-    // 6. Load current schedule for context
+    // 5. Load current schedule for context
     const schedule = await loadSchedule(supabase, user.id, weekStart)
 
-    // 7. Build system prompt with schedule context
+    // 6. Build system prompt with schedule context
     const systemPrompt = buildScheduleSystemPrompt(schedule || [])
 
-    // 8. Get provider and conversation
-    const provider = await getLLMProvider(routerContext)
+    // 7. Get provider and conversation
+    const provider = await getLLMProvider()
     const conversation = await getOrCreateConversation(supabase, user.id, weekStart)
 
-    // 9. Add user message
+    // 8. Add user message
     const userMessage: StoredMessage = {
       role: 'user',
       content: message,
@@ -341,28 +333,22 @@ export async function POST(request: Request) {
     }
     await addMessage(supabase, conversation.id, userMessage)
 
-    // 10. Build prompt with conversation history
+    // 9. Build prompt with conversation history
     const messages = toPromptMessages([...conversation.messages, userMessage], systemPrompt)
 
-    // 11. Call LLM
+    // 10. Call LLM
     const response = await provider.chat(messages, { maxTokens: 500 })
 
-    // 12. If API fallback was used, increment usage
-    const usedApiFallback = provider.getName() === 'openai-api'
-    if (usedApiFallback) {
-      await incrementApiUsage(supabase, user.id)
-    }
-
-    // 13. Parse response for modifications
+    // 11. Parse response for modifications
     const modification = parseModificationFromResponse(response.content)
     let modificationResult: ModificationResult | null = null
 
-    // 14. Apply modification if found
+    // 12. Apply modification if found
     if (modification) {
       modificationResult = await applyModification(supabase, user.id, weekStart, modification)
     }
 
-    // 15. Save assistant response
+    // 13. Save assistant response
     const assistantMessage: StoredMessage = {
       role: 'assistant',
       content: response.content,
@@ -370,21 +356,14 @@ export async function POST(request: Request) {
     }
     await addMessage(supabase, conversation.id, assistantMessage)
 
-    // 16. Extract clean text for display (without JSON blocks)
+    // 14. Extract clean text for display (without JSON blocks)
     const displayMessage = extractTextWithoutJson(response.content)
 
-    // 17. Return response with usage info and modification result
+    // 15. Return response with modification result
     return NextResponse.json({
       message: displayMessage,
       provider: response.provider,
       ...(modificationResult && { modification: modificationResult }),
-      ...(usedApiFallback && {
-        apiUsage: {
-          used: usage.used + 1,
-          limit: usage.limit,
-          remaining: usage.remaining - 1,
-        },
-      }),
     })
 
   } catch (error) {

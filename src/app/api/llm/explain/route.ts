@@ -1,6 +1,6 @@
 /**
  * Explain Rationale API Endpoint
- * Phase 8: LLM Gateway - Plan 04
+ * Phase 11: LLM Gateway Activation - Plan 01
  *
  * POST /api/llm/explain
  * Generates human-readable explanations for why events were scheduled.
@@ -11,6 +11,8 @@
  * - Caches responses for identical inputs
  * - Tracks token usage (daily and session)
  * - Returns explanations <=240 characters
+ *
+ * Simplified: Uses Anthropic only (no multi-provider fallback).
  */
 
 import { cookies } from 'next/headers'
@@ -29,7 +31,6 @@ import {
   parseExplainResponse,
   type ScoringFactor,
 } from '@/lib/llm/prompts/explain-rationale'
-import { getApiUsage } from '@/lib/services/api-usage'
 import { recordCacheHit, recordCacheMiss } from '@/app/api/llm/usage/route'
 import type { ChatMessage, ChatResponse } from '@/lib/llm/types'
 import type { ScheduleEventWithFlexibility } from '@/lib/scheduling/types'
@@ -111,15 +112,8 @@ export async function POST(request: Request) {
       }, { status: 429 })
     }
 
-    // 6. Get API usage for router context
-    const apiUsage = await getApiUsage(supabase, user.id)
-    const routerContext = {
-      userId: user.id,
-      apiUsageRemaining: apiUsage.remaining,
-    }
-
-    // 7. Check LLM status (fast fail)
-    const status = await getLLMStatus(routerContext)
+    // 6. Check LLM status (fast fail)
+    const status = await getLLMStatus()
     if (!status.available) {
       return NextResponse.json({
         error: 'Explanation unavailable',
@@ -128,7 +122,7 @@ export async function POST(request: Request) {
       }, { status: 503 })
     }
 
-    // 8. Build messages for LLM
+    // 7. Build messages for LLM
     const systemPrompt = buildExplainPrompt(event, scoringFactors)
 
     const messages: ChatMessage[] = [
@@ -136,7 +130,7 @@ export async function POST(request: Request) {
       { role: 'user', content: 'Generate the explanation.' },
     ]
 
-    // 9. Check cache
+    // 8. Check cache
     const cacheKey = generateCacheKey(messages)
     const cached = getCached(cacheKey)
 
@@ -154,8 +148,8 @@ export async function POST(request: Request) {
     // Record cache miss
     recordCacheMiss()
 
-    // 10. Get LLM provider and call
-    const provider = await getLLMProvider(routerContext)
+    // 9. Get LLM provider and call
+    const provider = await getLLMProvider()
     let response: ChatResponse
 
     try {
@@ -168,7 +162,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // 11. Record token usage to BOTH session and daily trackers (fail open)
+    // 10. Record token usage to BOTH session and daily trackers (fail open)
     let inputTokens = 0
     let outputTokens = 0
     try {
@@ -185,10 +179,10 @@ export async function POST(request: Request) {
       console.warn('[Explain] Token tracking failed:', trackingError)
     }
 
-    // 12. Cache the response
+    // 11. Cache the response
     setCached(cacheKey, response)
 
-    // 13. Parse and return response
+    // 12. Parse and return response
     const explanation = parseExplainResponse(response.content)
 
     const jsonResponse = NextResponse.json({

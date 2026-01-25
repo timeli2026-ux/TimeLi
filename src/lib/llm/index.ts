@@ -1,17 +1,16 @@
 /**
  * LLM Module Exports
- * Phase 6.5: Schedule Chat - Plan 01
- * Phase 8: LLM Gateway - Plan 01 (added cache, token-budget, Anthropic provider)
+ * Simplified for MVP - Anthropic only
  */
 
 // Types
 export * from './types'
 
 // Router (main API)
-export * from './router'
+export { getLLMProvider, getLLMStatus, estimateTokens, estimateOutputTokens } from './router'
 
 // Configuration
-export * from './config'
+export { getLLMConfig, isLLMConfigured } from './config'
 
 // Cache (response caching for cost reduction)
 export * from './cache'
@@ -19,8 +18,6 @@ export * from './cache'
 // Token Budget (usage tracking and limits)
 export * from './token-budget'
 
-// Providers
-export { SelfHostedProvider } from './providers/self-hosted'
-export { OpenAIProvider } from './providers/openai'
-export { OfflineProvider } from './providers/offline'
+// Providers (only what's needed)
 export { AnthropicProvider } from './providers/anthropic'
+export { OfflineProvider } from './providers/offline'

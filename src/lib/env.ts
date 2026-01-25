@@ -8,18 +8,9 @@ const envSchema = z.object({
   // Supabase (private - server only)
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
-  // Anthropic API (optional - chat features disabled without it)
+  // Anthropic API (optional - AI features disabled without it)
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
-
-  // Self-hosted LLM (optional - chat features use offline mode without it)
-  LLM_BASE_URL: z.string().url().optional(),
-  LLM_MODEL: z.string().optional(),
-  LLM_SCHEDULE: z.string().optional(),    // "09:00-14:00" or "09:00-14:00,18:00-22:00"
-  LLM_TIMEZONE: z.string().optional(),    // "America/New_York" (default)
-
-  // OpenAI API fallback (optional - used when self-hosted is unavailable)
-  OPENAI_API_KEY: z.string().optional(),
-  OPENAI_MODEL: z.string().optional(),    // "gpt-4o-mini" (default)
+  ANTHROPIC_MODEL: z.string().optional(), // Defaults to claude-3-haiku-20240307
 
   // Stripe (optional - billing features disabled without it)
   STRIPE_SECRET_KEY: z.string().optional(),
