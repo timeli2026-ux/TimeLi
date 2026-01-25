@@ -182,7 +182,7 @@ Plans:
 **Requirements**: LAND-01, REV-01, REV-02, REV-03, SEC-10, SEC-13, SEC-14
 
 Plans:
-- [ ] 10-01: Landing page with waitlist
+- [x] 10-01: Landing page with waitlist
 - [ ] 10-02: Weekly review feature
 - [ ] 10-03: CSP header finalization
 - [ ] 10-04: Final security audit and verification
@@ -206,7 +206,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Goals & Preferences | 3/3 | Complete | 2026-01-23 |
 | 8. LLM Gateway | 4/4 | Complete | 2026-01-23 |
 | 9. Settings & Billing | 3/3 | Complete | 2026-01-24 |
-| 10. Hardening & Launch | 0/4 | Not started | - |
+| 10. Hardening & Launch | 1/4 | In progress | - |
 
 ## Notes
 

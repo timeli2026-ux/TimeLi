@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Generate a weekly schedule from goals and constraints that respects all hard constraints and explains its reasoning.
-**Current focus:** Phase 9 — Settings & Billing
+**Current focus:** Phase 10 — Hardening & Launch
 
 ## Current Position
 
-Phase: 9 of 10 (Settings & Billing)
-Plan: 3 of 4 in current phase
+Phase: 10 of 10 (Hardening & Launch)
+Plan: 1 of 4 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 09-03-PLAN.md (Usage Tracking)
+Last activity: 2026-01-25 — Completed 10-01-PLAN.md (Landing Page)
 
 Progress: █████████████████████████████░ 97%
 
@@ -35,11 +35,12 @@ Progress: ███████████████████████�
 | 6 | 6/6 | 54 min | 9 min |
 | 7 | 3/3 | 20 min | 7 min |
 | 8 | 4/4 | 18 min | 4.5 min |
-| 9 | 3/4 | 14 min | 4.7 min |
+| 9 | 3/3 | 14 min | 4.7 min |
+| 10 | 1/4 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-04 (5 min), 09-01 (4 min), 09-02 (8 min), 09-03 (2 min)
-- Trend: Usage tracking complete with trial activation
+- Last 5 plans: 09-01 (4 min), 09-02 (8 min), 09-03 (2 min), 10-01 (3 min)
+- Trend: Landing page complete, moving to security hardening
 
 ## Major Revision: CALENDAR_REVISION.md
 
@@ -146,6 +147,9 @@ Recent decisions affecting current work:
 - (usage) Fail open on usage tracking errors
 - (usage) Inactive/trialing users have unlimited access
 - (usage) Color-coded usage indicator (green <50%, yellow 50-80%, red >80%)
+- (landing) Waitlist uses anon key - no auth required for signup
+- (landing) Email normalized to lowercase for deduplication
+- (landing) No SELECT policy on waitlist - admin access only via service role
 
 ### Pending Todos
 
@@ -157,7 +161,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24
-Stopped at: Completed 09-03-PLAN.md (Usage Tracking)
+Last session: 2026-01-25
+Stopped at: Completed 10-01-PLAN.md (Landing Page)
 Resume file: None
-Next: 09-04-PLAN.md (Subscription Management UI)
+Next: 10-02-PLAN.md (Weekly Review)
