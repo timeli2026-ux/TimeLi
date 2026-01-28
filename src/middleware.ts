@@ -97,9 +97,14 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes - require authentication
   const isOnboardingPath = pathname.startsWith('/onboarding')
-  const isDashboardPath = pathname.startsWith('/dashboard')
+  const isProtectedPath = pathname.startsWith('/dashboard') ||
+                          pathname.startsWith('/calendar') ||
+                          pathname.startsWith('/assignments') ||
+                          pathname.startsWith('/goals') ||
+                          pathname.startsWith('/review') ||
+                          pathname.startsWith('/settings')
 
-  if (isDashboardPath || isOnboardingPath) {
+  if (isProtectedPath || isOnboardingPath) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
@@ -117,7 +122,7 @@ export async function middleware(request: NextRequest) {
     const onboardingCompleted = profile?.onboarding_completed ?? false
 
     // Redirect non-onboarded users to onboarding (unless already on onboarding page)
-    if (!onboardingCompleted && !isOnboardingPath) {
+    if (!onboardingCompleted && isProtectedPath) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)

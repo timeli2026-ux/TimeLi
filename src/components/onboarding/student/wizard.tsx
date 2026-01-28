@@ -7,6 +7,7 @@ import {
   StudentOnboardingData,
   CourseInput,
   AssignmentInput,
+  PersonalGoalInput,
   STUDENT_ONBOARDING_STEPS,
   DEFAULT_STUDENT_ONBOARDING_DATA,
   DEFAULT_COURSE_COLOR,
@@ -15,6 +16,7 @@ import {
 import { BasicsStep } from './steps/basics-step'
 import { ClassesStep } from './steps/classes-step'
 import { AssignmentsStep } from './steps/assignments-step'
+import { GoalsStep } from './steps/goals-step'
 import { GenerateStep } from './steps/generate-step'
 
 interface StudentWizardProps {
@@ -68,12 +70,25 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
             sleepEnd: formData.sleepEnd,
             courses: formData.courses,
             assignments: formData.assignments,
+            personalGoals: formData.personalGoals,
           }),
         })
 
         if (!response.ok) {
           const data = await response.json()
           throw new Error(data.error || 'Failed to complete onboarding')
+        }
+
+        // Auto-generate schedule after onboarding completes
+        try {
+          await fetch('/api/schedule/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+          })
+        } catch (scheduleErr) {
+          // Non-fatal: user can regenerate from the dashboard
+          console.error('Schedule generation failed:', scheduleErr)
         }
 
         // Redirect to dashboard on success (hard redirect to ensure middleware runs)
@@ -139,6 +154,25 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
     }))
   }
 
+  // Personal goal handlers
+  const handleAddGoal = (goal: Omit<PersonalGoalInput, 'id'>) => {
+    const newGoal: PersonalGoalInput = {
+      ...goal,
+      id: crypto.randomUUID(),
+    }
+    setFormData((prev) => ({
+      ...prev,
+      personalGoals: [...prev.personalGoals, newGoal],
+    }))
+  }
+
+  const handleRemoveGoal = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      personalGoals: prev.personalGoals.filter((g) => g.id !== id),
+    }))
+  }
+
   // Render step content
   const renderStepContent = () => {
     switch (currentStep) {
@@ -179,6 +213,16 @@ export function StudentOnboardingWizard({ initialStep = 0 }: StudentWizardProps)
         )
 
       case 3:
+        // Goals: Personal goals and habits
+        return (
+          <GoalsStep
+            personalGoals={formData.personalGoals}
+            onAddGoal={handleAddGoal}
+            onRemoveGoal={handleRemoveGoal}
+          />
+        )
+
+      case 4:
         // Generate: Review summary and submit
         return (
           <GenerateStep

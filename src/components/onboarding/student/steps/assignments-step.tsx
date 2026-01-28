@@ -171,7 +171,7 @@ export function AssignmentsStep({
       type: a.type,
       dueDate: a.dueDate || new Date().toISOString().split('T')[0], // Default to today if no date
       estimatedHours: a.estimatedHours,
-      courseId: selectedCourseId || undefined,
+      courseId: selectedCourseId && selectedCourseId !== '__none__' ? selectedCourseId : undefined,
       notes: a.notes,
     }))
 
@@ -215,7 +215,7 @@ export function AssignmentsStep({
       type: manualType,
       dueDate: manualDueDate,
       estimatedHours: hours,
-      courseId: manualCourseId || undefined,
+      courseId: manualCourseId && manualCourseId !== '__none__' ? manualCourseId : undefined,
       notes: manualNotes.trim() || undefined,
     })
 
@@ -306,7 +306,7 @@ export function AssignmentsStep({
                   <SelectValue placeholder="Select a course for these assignments" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No course</SelectItem>
+                  <SelectItem value="__none__">No course</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
                       <div className="flex items-center gap-2">
@@ -553,7 +553,7 @@ export function AssignmentsStep({
                     <SelectValue placeholder="Select a course" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No course</SelectItem>
+                    <SelectItem value="__none__">No course</SelectItem>
                     {courses.map((course) => (
                       <SelectItem key={course.id} value={course.id}>
                         <div className="flex items-center gap-2">

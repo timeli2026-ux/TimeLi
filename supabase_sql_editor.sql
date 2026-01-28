@@ -481,6 +481,74 @@ CREATE POLICY "Users can update own usage tracking"
 CREATE INDEX idx_usage_tracking_user_period ON public.usage_tracking(user_id, period_start);
 
 -- =============================================================================
+-- TABLE: courses (STUDENT ONBOARDING)
+-- =============================================================================
+-- Stores user's courses/classes with schedule information
+
+DROP TABLE IF EXISTS public.assignments CASCADE;
+DROP TABLE IF EXISTS public.courses CASCADE;
+
+CREATE TABLE public.courses (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  name text NOT NULL,
+  instructor text,
+  color text DEFAULT '#3B82F6',
+  schedule jsonb NOT NULL DEFAULT '[]'::jsonb,
+  location text,
+  credits integer,
+  semester text,
+  is_active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own courses" ON public.courses FOR SELECT USING ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Users can create own courses" ON public.courses FOR INSERT WITH CHECK ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Users can update own courses" ON public.courses FOR UPDATE USING ((SELECT auth.uid()) = user_id) WITH CHECK ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Users can delete own courses" ON public.courses FOR DELETE USING ((SELECT auth.uid()) = user_id);
+
+CREATE TRIGGER courses_updated_at BEFORE UPDATE ON public.courses FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE INDEX courses_user_id_idx ON public.courses(user_id);
+CREATE INDEX courses_semester_idx ON public.courses(user_id, semester);
+
+-- =============================================================================
+-- TABLE: assignments (STUDENT ONBOARDING)
+-- =============================================================================
+-- Stores user's assignments with optional course reference
+
+CREATE TABLE public.assignments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  course_id uuid REFERENCES public.courses ON DELETE CASCADE,
+  title text NOT NULL,
+  type text NOT NULL CHECK (type IN ('homework', 'exam', 'project', 'reading', 'quiz', 'paper', 'other')),
+  due_date timestamptz NOT NULL,
+  estimated_hours numeric(4,1) NOT NULL CHECK (estimated_hours >= 0.5 AND estimated_hours <= 100),
+  priority text DEFAULT 'medium' CHECK (priority IN ('high', 'medium', 'low')),
+  notes text,
+  status text DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
+  completed_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own assignments" ON public.assignments FOR SELECT USING ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Users can create own assignments" ON public.assignments FOR INSERT WITH CHECK ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Users can update own assignments" ON public.assignments FOR UPDATE USING ((SELECT auth.uid()) = user_id) WITH CHECK ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Users can delete own assignments" ON public.assignments FOR DELETE USING ((SELECT auth.uid()) = user_id);
+
+CREATE TRIGGER assignments_updated_at BEFORE UPDATE ON public.assignments FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE INDEX assignments_user_id_idx ON public.assignments(user_id);
+CREATE INDEX assignments_course_id_idx ON public.assignments(course_id) WHERE course_id IS NOT NULL;
+CREATE INDEX assignments_due_date_idx ON public.assignments(user_id, due_date);
+CREATE INDEX assignments_status_idx ON public.assignments(user_id, status);
+
+-- =============================================================================
 -- SCHEMA RELOAD
 -- =============================================================================
 

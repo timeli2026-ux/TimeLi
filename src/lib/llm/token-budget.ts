@@ -12,15 +12,15 @@
 import { createHash } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Budget limits from PRD
+// Budget limits from PRD (increased for testing)
 export const DAILY_LIMITS = {
-  input: 100_000,   // 100k input tokens per day
-  output: 20_000,   // 20k output tokens per day
+  input: 500_000,   // 500k input tokens per day (testing)
+  output: 100_000,  // 100k output tokens per day (testing)
 }
 
 export const SESSION_LIMITS = {
-  input: 3_000,     // 3k input tokens per session
-  output: 500,      // 500 output tokens per session
+  input: 100_000,   // 100k input tokens per session (testing)
+  output: 50_000,   // 50k output tokens per session (testing)
 }
 
 // Session expires after 30 minutes of inactivity

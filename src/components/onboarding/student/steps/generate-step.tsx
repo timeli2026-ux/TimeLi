@@ -3,8 +3,8 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Clock, BookOpen, FileText, Sparkles } from 'lucide-react'
-import { StudentOnboardingData, DAYS_OF_WEEK, ASSIGNMENT_TYPES } from '../types'
+import { Pencil, Clock, BookOpen, FileText, Target, Sparkles } from 'lucide-react'
+import { StudentOnboardingData, DAYS_OF_WEEK, ASSIGNMENT_TYPES, GOAL_CATEGORIES } from '../types'
 
 interface GenerateStepProps {
   data: StudentOnboardingData
@@ -54,6 +54,12 @@ export function GenerateStep({ data, onGoToStep }: GenerateStepProps) {
       return `${count} ${label.toLowerCase()}${count > 1 ? 's' : ''}`
     })
     .join(', ')
+
+  // Calculate total personal goal hours
+  const personalGoalHours = data.personalGoals.reduce(
+    (sum, g) => sum + (g.timesPerWeek * g.minutesPerSession) / 60,
+    0
+  )
 
   return (
     <div className="w-full space-y-6">
@@ -161,6 +167,53 @@ export function GenerateStep({ data, onGoToStep }: GenerateStepProps) {
                 </div>
               )}
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Personal Goals Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-lg font-medium flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Personal Goals
+            <Badge variant="secondary">{data.personalGoals.length}</Badge>
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-primary"
+            onClick={() => onGoToStep(3)}
+          >
+            <Pencil className="w-4 h-4 mr-1" />
+            Edit
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {data.personalGoals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No personal goals added (optional)</p>
+          ) : (
+            <ul className="space-y-2">
+              {data.personalGoals.map((goal) => {
+                const categoryInfo = GOAL_CATEGORIES.find(c => c.id === goal.category)
+                const hoursPerWeek = (goal.timesPerWeek * goal.minutesPerSession) / 60
+                return (
+                  <li key={goal.id} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <span>{categoryInfo?.icon || '⭐'}</span>
+                      <span>{goal.title}</span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      {hoursPerWeek.toFixed(1)}h/week
+                    </span>
+                  </li>
+                )
+              })}
+              <li className="flex justify-between text-sm pt-2 border-t">
+                <span className="text-muted-foreground">Total personal time</span>
+                <span>{personalGoalHours.toFixed(1)} hours/week</span>
+              </li>
+            </ul>
           )}
         </CardContent>
       </Card>

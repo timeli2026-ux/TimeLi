@@ -234,11 +234,12 @@ export async function POST(request: Request) {
     setCached(cacheKey, response)
 
     // 12. Parse response
+    console.log('[SyllabusParse] Raw LLM response:', response.content.substring(0, 500))
     const parsed = parseSyllabusResponse(response.content)
 
     if (!parsed) {
       console.error(
-        '[SyllabusParse] Failed to parse LLM response:',
+        '[SyllabusParse] Failed to parse LLM response (full):',
         response.content
       )
       return NextResponse.json(

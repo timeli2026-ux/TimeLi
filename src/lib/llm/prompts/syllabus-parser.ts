@@ -175,103 +175,56 @@ Use these guidelines to estimate hours for each assignment type:
    - Text appears to be something other than a syllabus
    - Assignments are mentioned but without any identifying details
 
-## Examples
+## Output Format Example (STRUCTURE ONLY - DO NOT COPY CONTENT)
 
-### Example 1: Complete Syllabus
-User provides syllabus text for "HIST 200: American History" with assignments listed.
-
-Response:
 \`\`\`json
 {
-  "courseName": "HIST 200: American History",
-  "instructor": "Dr. Sarah Johnson",
-  "semester": "Spring 2026",
+  "courseName": "[EXTRACT FROM SYLLABUS]",
+  "instructor": "[EXTRACT FROM SYLLABUS OR null]",
+  "semester": "[EXTRACT FROM SYLLABUS OR null]",
   "assignments": [
     {
-      "title": "Reading: Chapters 1-3",
-      "type": "reading",
-      "dueDate": "2026-01-28",
-      "estimatedHours": 3,
-      "notes": "Focus on key themes"
-    },
-    {
-      "title": "Primary Source Analysis Paper",
-      "type": "paper",
-      "dueDate": "2026-02-15",
-      "estimatedHours": 8,
-      "notes": "5-6 pages, MLA format"
-    },
-    {
-      "title": "Midterm Exam",
-      "type": "exam",
-      "dueDate": "2026-03-10",
-      "estimatedHours": 6
-    },
-    {
-      "title": "Research Paper",
-      "type": "paper",
-      "dueDate": "2026-04-25",
-      "estimatedHours": 20,
-      "notes": "10-12 pages with 8+ sources"
-    },
-    {
-      "title": "Final Exam",
-      "type": "exam",
-      "dueDate": "2026-05-15",
-      "estimatedHours": 10,
-      "notes": "Comprehensive"
+      "title": "[EXACT TITLE FROM SYLLABUS]",
+      "type": "[homework|exam|project|reading|quiz|paper|other]",
+      "dueDate": "[YYYY-MM-DD or null]",
+      "estimatedHours": "[NUMBER]",
+      "notes": "[OPTIONAL CONTEXT]"
     }
   ]
 }
 \`\`\`
 
-### Example 2: Partial Information
-User provides text that mentions assignments but lacks dates.
-
-Response:
-\`\`\`json
-{
-  "courseName": "BIO 101: Introduction to Biology",
-  "instructor": "Prof. Martinez",
-  "semester": null,
-  "assignments": [
-    {
-      "title": "Lab Report 1",
-      "type": "homework",
-      "dueDate": null,
-      "estimatedHours": 3,
-      "notes": "Date not specified in syllabus"
-    },
-    {
-      "title": "Midterm Exam",
-      "type": "exam",
-      "dueDate": null,
-      "estimatedHours": 6,
-      "notes": "Week 8 - exact date not provided"
-    }
-  ]
-}
-\`\`\`
-
-### Example 3: Clarification Needed
-User provides unclear or insufficient text.
-
-Response:
+If clarification needed:
 \`\`\`json
 {
   "needsClarification": true,
-  "questions": [
-    "What is the name of this course?",
-    "Can you provide more details about the assignments or grading breakdown?"
-  ]
+  "questions": ["[YOUR QUESTION]"]
 }
 \`\`\`
 
-## Important
-- Extract EVERY assignment, exam, quiz, paper, and project mentioned
-- Use the hour estimation heuristics to provide reasonable time estimates
-- Return ONLY the JSON code block, no additional text
-- When in doubt about type, prefer "homework" for general assignments`
+## MANDATORY EXTRACTION RULES
+
+1. **READ THE ACTUAL SYLLABUS BELOW** - extract only what's written there
+2. **Extract ALL graded components** from the grading breakdown (e.g., "20% Prelim" = extract the prelim)
+3. **Extract ALL weekly/recurring work** as ONE entry with frequency noted
+4. **Extract ALL required films/viewings** as reading assignments
+5. **Use EXACT dates** from the syllabus (e.g., "February 26" → "2026-02-26")
+6. **Use titles FROM THE SYLLABUS** - don't paraphrase or invent titles
+
+## WHAT TO EXTRACT
+
+From a typical syllabus, look for:
+- Grading breakdown items (prelims, papers, projects, participation)
+- Items in the class schedule with due dates
+- Required films or viewings
+- Recurring assignments (reflections, journals, problem sets)
+
+## DATE HANDLING
+
+- "February 26" or "Feb 26" → "2026-02-26"
+- "Monday 4/13" → "2026-04-13"
+- "Week 8" or "TBA" → null (add note about timing)
+- Assume year 2026 for Spring semester, 2025 for Fall`
 }
 
 // =============================================================================

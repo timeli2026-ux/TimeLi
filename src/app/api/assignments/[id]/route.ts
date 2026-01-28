@@ -258,6 +258,17 @@ export async function PUT(
 }
 
 // =============================================================================
+// PATCH /api/assignments/[id] - Partial update (alias for PUT)
+// =============================================================================
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return PUT(request, context)
+}
+
+// =============================================================================
 // DELETE /api/assignments/[id] - Delete assignment
 // =============================================================================
 
