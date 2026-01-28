@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -58,6 +59,16 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-zinc-100 to-zinc-50 dark:from-zinc-900 dark:to-zinc-950" />
 
         <div className="relative mx-auto max-w-5xl px-6 py-24 sm:py-32 lg:py-40">
+          {/* Nav */}
+          <div className="absolute top-6 right-6 flex items-center gap-3">
+            <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">
+              Log in
+            </Link>
+            <Button asChild size="sm">
+              <Link href="/signup">Sign up</Link>
+            </Button>
+          </div>
+
           <div className="text-center">
             {/* Logo/Brand */}
             <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
