@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     // Get request origin for success/cancel URLs
-    const origin = request.headers.get('origin') || 'http://localhost:3000'
+    const origin = request.headers.get('origin') || 'https://time-li.vercel.app'
     const successUrl = `${origin}/settings/subscription?success=true`
     const cancelUrl = `${origin}/settings/subscription?canceled=true`
 

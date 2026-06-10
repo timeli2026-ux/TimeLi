@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     // Get request origin for return URL
-    const origin = request.headers.get('origin') || 'http://localhost:3000'
+    const origin = request.headers.get('origin') || 'https://time-li.vercel.app'
     const returnUrl = `${origin}/settings/subscription`
 
     // Create portal session
